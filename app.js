@@ -620,10 +620,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 2. Cargo Deadline
     const cargoEval = ComexCalculations.evaluateDeadline(b.cargoDeadline);
-    const badgeCargo = document.getElementById('badge-status-cargo');
-    const textDateCargo = document.getElementById('text-date-cargo');
-    const countdownCargo = document.getElementById('countdown-cargo');
-    const cardCargo = document.getElementById('card-deadline-cargo');
 
     if (textDateCargo) {
       textDateCargo.textContent = b.cargoDeadline ? new Date(b.cargoDeadline).toLocaleString('pt-BR') : 'Não configurada';
@@ -732,15 +728,20 @@ document.addEventListener('DOMContentLoaded', () => {
   // BARRA FIXA DE RESUMO (STICKY BAR)
   // ==========================================
   function updateStickySummary() {
+    const setTxt = (id, txt) => {
+      const el = document.getElementById(id);
+      if (el) el.textContent = txt;
+    };
+
     if (!currentShipment) {
-      document.getElementById('bar-booking-ref').textContent = 'Booking: --';
-      document.getElementById('bar-vessel-ref').textContent = 'Navio: --';
-      document.getElementById('bar-pol-pod-ref').textContent = 'Nenhum embarque selecionado';
-      document.getElementById('bar-cnt-count').textContent = '0';
-      document.getElementById('bar-pallets-count').textContent = '0';
-      document.getElementById('bar-volume-m3').textContent = '0.000 m³';
-      document.getElementById('bar-total-vgm').textContent = '0 kg';
-      document.getElementById('bar-total-usd').textContent = '$0.00';
+      setTxt('bar-booking-ref', 'Booking: --');
+      setTxt('bar-vessel-ref', 'Navio: --');
+      setTxt('bar-pol-pod-ref', 'POL -> POD');
+      setTxt('bar-cnt-count', '0');
+      setTxt('bar-pallets-count', '0');
+      setTxt('bar-volume-m3', '0.000 m³');
+      setTxt('bar-total-vgm', '0 kg');
+      setTxt('bar-total-usd', '$0.00');
       const payloadBadge = document.getElementById('bar-payload-badge');
       if (payloadBadge) {
         payloadBadge.textContent = 'Sem Embarque';
@@ -753,23 +754,25 @@ document.addEventListener('DOMContentLoaded', () => {
     const cnts = currentShipment.containers || [];
     const totals = ComexCalculations.calculateShipmentTotals(cnts);
 
-    document.getElementById('bar-booking-ref').textContent = `Booking: ${b.bookingNumber || 'TBA'}`;
-    document.getElementById('bar-vessel-ref').textContent = `Navio: ${b.vessel || 'TBA'} / ${b.voyage || '01'}`;
-    document.getElementById('bar-pol-pod-ref').textContent = `${b.pol || 'POL'} -> ${b.pod || 'POD'}`;
+    setTxt('bar-booking-ref', `Booking: ${b.bookingNumber || 'TBA'}`);
+    setTxt('bar-vessel-ref', `Navio: ${b.vessel || 'TBA'} / ${b.voyage || '01'}`);
+    setTxt('bar-pol-pod-ref', `${b.pol || 'POL'} -> ${b.pod || 'POD'}`);
 
-    document.getElementById('bar-cnt-count').textContent = totals.containerCount;
-    document.getElementById('bar-pallets-count').textContent = totals.totalPallets;
-    document.getElementById('bar-volume-m3').textContent = `${totals.totalVolumeM3.toFixed(3)} m³`;
-    document.getElementById('bar-total-vgm').textContent = `${totals.totalVgmKg.toLocaleString()} kg`;
-    document.getElementById('bar-total-usd').textContent = `$${totals.totalValueUsd.toLocaleString(undefined, { minimumFractionDigits: 2 })}`;
+    setTxt('bar-cnt-count', totals.containerCount);
+    setTxt('bar-pallets-count', totals.totalPallets);
+    setTxt('bar-volume-m3', `${totals.totalVolumeM3.toFixed(3)} m³`);
+    setTxt('bar-total-vgm', `${totals.totalVgmKg.toLocaleString()} kg`);
+    setTxt('bar-total-usd', `$${totals.totalValueUsd.toLocaleString(undefined, { minimumFractionDigits: 2 })}`);
 
     const payloadBadge = document.getElementById('bar-payload-badge');
-    if (totals.hasOverweightContainer) {
-      payloadBadge.textContent = '⚠️ EXCESSO DE PESO';
-      payloadBadge.className = 'px-2 py-0.5 rounded text-[11px] font-bold bg-rose-100 text-rose-800 animate-pulse';
-    } else {
-      payloadBadge.textContent = 'VGM OK';
-      payloadBadge.className = 'px-2 py-0.5 rounded text-[11px] font-bold bg-emerald-100 text-emerald-800';
+    if (payloadBadge) {
+      if (totals.hasOverweightContainer) {
+        payloadBadge.textContent = '⚠️ EXCESSO DE PESO';
+        payloadBadge.className = 'px-2 py-0.5 rounded text-[11px] font-bold bg-rose-100 text-rose-800 animate-pulse';
+      } else {
+        payloadBadge.textContent = 'VGM OK';
+        payloadBadge.className = 'px-2 py-0.5 rounded text-[11px] font-bold bg-emerald-100 text-emerald-800';
+      }
     }
   }
 
