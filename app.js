@@ -883,7 +883,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     listEl.innerHTML = actives.map(s => {
-      const isCurrent = s.id === currentShipment.id;
+      const isCurrent = currentShipment ? s.id === currentShipment.id : false;
       const b = s.booking || {};
       const totals = ComexCalculations.calculateShipmentTotals(s.containers || []);
       const draftEval = ComexCalculations.evaluateDeadline(b.draftDeadline);
