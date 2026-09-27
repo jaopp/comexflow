@@ -235,7 +235,8 @@ class ComexStorage {
     this.saveAllShipments(list);
 
     if (this.getCurrentShipmentId() === id) {
-      const next = list.length > 0 ? list[0].id : null;
+      const actives = list.filter(s => s.status !== 'completed');
+      const next = actives.length > 0 ? actives[0].id : (list.length > 0 ? list[0].id : null);
       if (next) {
         this.setCurrentShipmentId(next);
       } else {

@@ -304,12 +304,18 @@
       
       <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6 space-y-6">
         
-        <div>
-          <h3 class="text-base font-bold text-slate-900 flex items-center">
-            <i data-lucide="anchor" class="w-5 h-5 mr-2 text-blue-600"></i>
-            Dados da Reserva (Booking) e Transporte Marítimo
-          </h3>
-          <p class="text-xs text-slate-500 mt-0.5">Informações constantes na confirmação de reserva do armador.</p>
+        <div class="flex flex-wrap items-center justify-between gap-3 pb-2 border-b border-slate-100">
+          <div>
+            <h3 class="text-base font-bold text-slate-900 flex items-center">
+              <i data-lucide="anchor" class="w-5 h-5 mr-2 text-blue-600"></i>
+              Dados da Reserva (Booking) e Transporte Marítimo
+            </h3>
+            <p class="text-xs text-slate-500 mt-0.5">Informações constantes na confirmação de reserva do armador.</p>
+          </div>
+          <button id="btn-delete-current-shipment" class="px-3 py-1.5 text-xs font-semibold bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 rounded-lg transition flex items-center space-x-1.5" title="Excluir o embarque em edição">
+            <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+            <span>Excluir Este Embarque</span>
+          </button>
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">

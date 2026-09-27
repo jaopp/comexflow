@@ -144,6 +144,11 @@ document.addEventListener('DOMContentLoaded', () => {
   function saveFormDataToCurrentShipment() {
     if (!currentShipment) return;
 
+    // Se o embarque atual foi excluído do storage, não o recria
+    if (!comexStorage.getShipmentById(currentShipment.id)) {
+      return;
+    }
+
     currentShipment.booking = currentShipment.booking || {};
     const b = currentShipment.booking;
 
@@ -867,9 +872,42 @@ document.addEventListener('DOMContentLoaded', () => {
     if (window.lucide) lucide.createIcons();
   }
 
+  function deleteShipmentWithConfirmation(id) {
+    if (!id) return;
+    const shipment = comexStorage.getShipmentById(id);
+    const title = shipment?.title || 'este embarque';
+    
+    if (!confirm(`Deseja realmente excluir permanentemente "${title}"?`)) {
+      return;
+    }
+
+    // Cancela imediatamente qualquer salvamento pendente
+    clearTimeout(autoSaveTimeout);
+
+    comexStorage.deleteShipment(id);
+
+    // Se o embarque excluído era o que estava aberto em edição
+    if (currentShipment && currentShipment.id === id) {
+      const activeList = comexStorage.getActiveShipments();
+      if (activeList.length > 0) {
+        currentShipment = activeList[0];
+        comexStorage.setCurrentShipmentId(currentShipment.id);
+      } else {
+        currentShipment = comexStorage.createNewShipment('Novo Embarque');
+      }
+      populateForm(currentShipment);
+    }
+
+    renderDashboardList();
+    renderHistoryList();
+    updateStickySummary();
+    if (window.lucide) lucide.createIcons();
+  }
+
   function bindShipmentListEvents(container) {
     container.querySelectorAll('.btn-select-shipment').forEach(btn => {
-      btn.addEventListener('click', () => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
         const id = btn.dataset.id;
         comexStorage.setCurrentShipmentId(id);
         currentShipment = comexStorage.getShipmentById(id);
@@ -879,21 +917,19 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     container.querySelectorAll('.btn-delete-shipment').forEach(btn => {
-      btn.addEventListener('click', () => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        e.preventDefault();
         const id = btn.dataset.id;
-        if (confirm('Deseja realmente excluir este embarque?')) {
-          comexStorage.deleteShipment(id);
-          currentShipment = comexStorage.getCurrentShipment() || comexStorage.createNewShipment();
-          populateForm(currentShipment);
-          renderDashboardList();
-        }
+        deleteShipmentWithConfirmation(id);
       });
     });
   }
 
   function bindHistoryListEvents(container) {
     container.querySelectorAll('.btn-reopen-shipment').forEach(btn => {
-      btn.addEventListener('click', () => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
         const id = btn.dataset.id;
         comexStorage.reopenShipment(id);
         comexStorage.setCurrentShipmentId(id);
@@ -904,7 +940,8 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     container.querySelectorAll('.btn-view-doc-history').forEach(btn => {
-      btn.addEventListener('click', () => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
         const id = btn.dataset.id;
         comexStorage.setCurrentShipmentId(id);
         currentShipment = comexStorage.getShipmentById(id);
@@ -914,15 +951,21 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     container.querySelectorAll('.btn-delete-shipment').forEach(btn => {
-      btn.addEventListener('click', () => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        e.preventDefault();
         const id = btn.dataset.id;
-        if (confirm('Deseja realmente excluir este histórico?')) {
-          comexStorage.deleteShipment(id);
-          renderHistoryList();
-        }
+        deleteShipmentWithConfirmation(id);
       });
     });
   }
+
+  // Botão de Excluir Embarque Atual na aba Booking
+  document.getElementById('btn-delete-current-shipment')?.addEventListener('click', () => {
+    if (currentShipment) {
+      deleteShipmentWithConfirmation(currentShipment.id);
+    }
+  });
 
   // ==========================================
   // AÇÕES GLOBAIS DE TOPO (HEADER)
