@@ -13,15 +13,8 @@ document.addEventListener('DOMContentLoaded', () => {
   let currentDocType = 'invoice';
   let autoSaveTimeout = null;
 
-  // Garante que exista pelo menos um embarque
+  // Obtém o embarque ativo atual (se houver no LocalStorage)
   let currentShipment = comexStorage.getCurrentShipment();
-  if (!currentShipment) {
-    // Se não houver nenhum, cria o primeiro automaticamente com dados de teste
-    const sample = ComexMockData.getSampleShipment();
-    comexStorage.saveShipment(sample);
-    comexStorage.setCurrentShipmentId(sample.id);
-    currentShipment = sample;
-  }
 
   // Elementos do DOM
   const navTabs = document.querySelectorAll('.nav-tab');
@@ -64,8 +57,37 @@ document.addEventListener('DOMContentLoaded', () => {
   // ==========================================
   // RENDERIZAÇÃO E FORMULÁRIOS
   // ==========================================
+  function clearForm() {
+    const inputIds = [
+      'inp-booking-num', 'inp-carrier', 'inp-contract-num', 'inp-vessel', 'inp-voyage',
+      'inp-pol', 'inp-pod', 'inp-deadline-draft', 'inp-deadline-cargo',
+      'inp-shipper-name', 'inp-shipper-address', 'inp-shipper-taxid',
+      'inp-consignee-name', 'inp-consignee-address', 'inp-consignee-taxid',
+      'inp-notify-name', 'inp-notify-address', 'inp-notify-taxid',
+      'inp-ncm', 'inp-due', 'inp-ruc'
+    ];
+    inputIds.forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.value = '';
+    });
+    const freight = document.getElementById('inp-freight-term');
+    if (freight) freight.value = 'Prepaid';
+
+    updateDraftButtonUI(false);
+    updateCargoButtonUI(false);
+
+    renderContainersList();
+    renderNfeItemsTable();
+    renderCurrentDocument();
+    updateStickySummary();
+    updateDeadlineCards();
+  }
+
   function populateForm(shipment) {
-    if (!shipment) return;
+    if (!shipment) {
+      clearForm();
+      return;
+    }
     const b = shipment.booking || {};
 
     // Booking & Embarque
@@ -198,6 +220,17 @@ document.addEventListener('DOMContentLoaded', () => {
   function renderContainersList() {
     const listEl = document.getElementById('containers-list');
     if (!listEl) return;
+
+    if (!currentShipment) {
+      listEl.innerHTML = `
+        <div class="p-8 text-center bg-white rounded-xl border border-slate-200 text-slate-400">
+          Nenhum embarque ativo. Clique em "Novo Embarque" ou "Carregar Teste".
+        </div>
+      `;
+      const badge = document.getElementById('badge-container-count');
+      if (badge) badge.textContent = '0';
+      return;
+    }
 
     const containers = currentShipment.containers || [];
     document.getElementById('badge-container-count').textContent = containers.length;
@@ -390,6 +423,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Adicionar novo container
   document.getElementById('btn-add-container')?.addEventListener('click', () => {
+    if (!currentShipment) {
+      currentShipment = comexStorage.createNewShipment('Novo Embarque');
+      populateForm(currentShipment);
+    }
     currentShipment.containers = currentShipment.containers || [];
     currentShipment.containers.push({
       id: 'cnt_' + Date.now(),
@@ -451,6 +488,10 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
+    if (!currentShipment) {
+      currentShipment = comexStorage.createNewShipment('Embarque Importado NF-e');
+    }
+
     currentShipment.nfeItems = currentShipment.nfeItems || [];
 
     parsedList.forEach(xmlData => {
@@ -488,7 +529,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const tbody = document.getElementById('tbody-nfe-items');
     const summaryText = document.getElementById('nfe-summary-text');
     const badgeCount = document.getElementById('badge-nfe-count');
-    const items = currentShipment.nfeItems || [];
+    const items = currentShipment ? (currentShipment.nfeItems || []) : [];
 
     if (badgeCount) {
       badgeCount.textContent = items.length;
@@ -530,14 +571,39 @@ document.addEventListener('DOMContentLoaded', () => {
   // DEADLINES & CONTAGEM REGRESSIVA (TEMPO REAL)
   // ==========================================
   function updateDeadlineCards() {
-    const b = currentShipment.booking || {};
-
-    // 1. Draft Deadline
-    const draftEval = ComexCalculations.evaluateDeadline(b.draftDeadline);
     const badgeDraft = document.getElementById('badge-status-draft');
     const textDateDraft = document.getElementById('text-date-draft');
     const countdownDraft = document.getElementById('countdown-draft');
     const cardDraft = document.getElementById('card-deadline-draft');
+
+    const badgeCargo = document.getElementById('badge-status-cargo');
+    const textDateCargo = document.getElementById('text-date-cargo');
+    const countdownCargo = document.getElementById('countdown-cargo');
+    const cardCargo = document.getElementById('card-deadline-cargo');
+
+    if (!currentShipment) {
+      if (badgeDraft) {
+        badgeDraft.textContent = 'Sem Embarque';
+        badgeDraft.className = 'px-2.5 py-1 text-xs font-bold rounded-full bg-slate-100 text-slate-500';
+      }
+      if (textDateDraft) textDateDraft.textContent = 'Nenhum embarque ativo';
+      if (countdownDraft) countdownDraft.textContent = '--:--:--';
+      if (cardDraft) cardDraft.classList.remove('deadline-danger-pulse');
+
+      if (badgeCargo) {
+        badgeCargo.textContent = 'Sem Embarque';
+        badgeCargo.className = 'px-2.5 py-1 text-xs font-bold rounded-full bg-slate-100 text-slate-500';
+      }
+      if (textDateCargo) textDateCargo.textContent = 'Nenhum embarque ativo';
+      if (countdownCargo) countdownCargo.textContent = '--:--:--';
+      if (cardCargo) cardCargo.classList.remove('deadline-danger-pulse');
+      return;
+    }
+
+    const b = currentShipment.booking || {};
+
+    // 1. Draft Deadline
+    const draftEval = ComexCalculations.evaluateDeadline(b.draftDeadline);
 
     if (textDateDraft) {
       textDateDraft.textContent = b.draftDeadline ? new Date(b.draftDeadline).toLocaleString('pt-BR') : 'Não configurada';
@@ -642,6 +708,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   document.getElementById('btn-toggle-draft-sent')?.addEventListener('click', () => {
+    if (!currentShipment) return;
     currentShipment.booking.draftSent = !currentShipment.booking.draftSent;
     comexStorage.saveShipment(currentShipment);
     updateDraftButtonUI(currentShipment.booking.draftSent);
@@ -649,6 +716,7 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   document.getElementById('btn-toggle-cargo-delivered')?.addEventListener('click', () => {
+    if (!currentShipment) return;
     currentShipment.booking.cargoDelivered = !currentShipment.booking.cargoDelivered;
     comexStorage.saveShipment(currentShipment);
     updateCargoButtonUI(currentShipment.booking.cargoDelivered);
@@ -664,6 +732,23 @@ document.addEventListener('DOMContentLoaded', () => {
   // BARRA FIXA DE RESUMO (STICKY BAR)
   // ==========================================
   function updateStickySummary() {
+    if (!currentShipment) {
+      document.getElementById('bar-booking-ref').textContent = 'Booking: --';
+      document.getElementById('bar-vessel-ref').textContent = 'Navio: --';
+      document.getElementById('bar-pol-pod-ref').textContent = 'Nenhum embarque selecionado';
+      document.getElementById('bar-cnt-count').textContent = '0';
+      document.getElementById('bar-pallets-count').textContent = '0';
+      document.getElementById('bar-volume-m3').textContent = '0.000 m³';
+      document.getElementById('bar-total-vgm').textContent = '0 kg';
+      document.getElementById('bar-total-usd').textContent = '$0.00';
+      const payloadBadge = document.getElementById('bar-payload-badge');
+      if (payloadBadge) {
+        payloadBadge.textContent = 'Sem Embarque';
+        payloadBadge.className = 'px-2 py-0.5 rounded text-[11px] font-bold bg-slate-100 text-slate-500';
+      }
+      return;
+    }
+
     const b = currentShipment.booking || {};
     const cnts = currentShipment.containers || [];
     const totals = ComexCalculations.calculateShipmentTotals(cnts);
@@ -694,6 +779,16 @@ document.addEventListener('DOMContentLoaded', () => {
   function renderCurrentDocument() {
     const container = document.getElementById('document-preview-container');
     if (!container) return;
+
+    if (!currentShipment) {
+      container.innerHTML = `
+        <div class="p-12 text-center bg-white rounded-xl border border-slate-200 text-slate-400 max-w-xl mx-auto shadow-sm">
+          <p class="font-bold text-slate-700 text-base mb-1">Nenhum embarque selecionado</p>
+          <p class="text-xs text-slate-500">Crie um novo embarque ou selecione um embarque existente no Dashboard para visualizar e emitir documentos.</p>
+        </div>
+      `;
+      return;
+    }
 
     switch (currentDocType) {
       case 'invoice':
@@ -728,16 +823,27 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Ações de Documentos
   document.getElementById('btn-print-doc')?.addEventListener('click', () => {
+    if (!currentShipment) {
+      alert('Nenhum embarque ativo selecionado para impressão.');
+      return;
+    }
     window.print();
   });
 
   document.getElementById('btn-export-excel')?.addEventListener('click', () => {
+    if (!currentShipment) {
+      alert('Nenhum embarque ativo selecionado para exportação.');
+      return;
+    }
     ComexDocGenerators.exportToExcel(currentShipment);
   });
 
   document.getElementById('btn-copy-doc-text')?.addEventListener('click', () => {
     const docContainer = document.querySelector('.comex-document');
-    if (!docContainer) return;
+    if (!docContainer) {
+      alert('Nenhum documento gerado para copiar.');
+      return;
+    }
     const textToCopy = docContainer.innerText;
     navigator.clipboard.writeText(textToCopy).then(() => {
       alert('Texto do documento copiado para a área de transferência!');
@@ -745,8 +851,16 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   document.getElementById('btn-mark-completed')?.addEventListener('click', () => {
+    if (!currentShipment) {
+      alert('Nenhum embarque ativo selecionado.');
+      return;
+    }
     if (confirm('Deseja marcar este embarque como Concluído e arquivá-lo no Histórico?')) {
       comexStorage.markAsCompleted(currentShipment.id);
+      const actives = comexStorage.getActiveShipments();
+      currentShipment = actives.length > 0 ? actives[0] : null;
+      comexStorage.setCurrentShipmentId(currentShipment ? currentShipment.id : null);
+      populateForm(currentShipment);
       switchTab('tab-history');
     }
   });
@@ -893,7 +1007,8 @@ document.addEventListener('DOMContentLoaded', () => {
         currentShipment = activeList[0];
         comexStorage.setCurrentShipmentId(currentShipment.id);
       } else {
-        currentShipment = comexStorage.createNewShipment('Novo Embarque');
+        currentShipment = null;
+        comexStorage.setCurrentShipmentId(null);
       }
       populateForm(currentShipment);
     }
