@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ComexFlow - Automação e Documentação de Exportação</title>
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <!-- SheetJS para Exportação Excel .xlsx -->
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  
+  <link rel="stylesheet" href="css/main.css">
+</head>
+<body class="bg-slate-50 min-h-screen text-slate-800 flex flex-col">
+
+  <!-- Header Superior -->
+  <header id="app-navbar" class="bg-slate-900 text-white border-b border-slate-800 sticky top-0 z-50 shadow-md">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex items-center justify-between h-16">
+        
+        <!-- Logo e Título -->
+        <div class="flex items-center space-x-3">
+          <div class="bg-blue-600 text-white p-2 rounded-lg flex items-center justify-center shadow-inner">
+            <i data-lucide="ship" class="w-6 h-6"></i>
+          </div>
+          <div>
+            <div class="flex items-center space-x-2">
+              <span class="text-xl font-bold tracking-tight text-white">ComexFlow</span>
+              <span class="text-[10px] font-semibold uppercase px-2 py-0.5 bg-blue-500/20 text-blue-300 border border-blue-400/30 rounded-full">SaaS Exportação</span>
+            </div>
+            <p class="text-xs text-slate-400 hidden sm:block">Automação de Despacho Aduaneiro & Documentos Marítimos</p>
+          </div>
+        </div>
+
+        <!-- Seletor de Embarque Atual & Status de Autosave -->
+        <div class="flex items-center space-x-4">
+          <div class="hidden md:flex items-center text-xs text-emerald-400 bg-slate-800/80 px-3 py-1.5 rounded-full border border-slate-700">
+            <span class="w-2 h-2 bg-emerald-400 rounded-full animate-pulse mr-2"></span>
+            <span id="autosave-indicator">Salvo localmente</span>
+          </div>
+
+          <div class="flex items-center space-x-2">
+            <button id="btn-load-sample" class="px-3 py-1.5 text-xs font-medium bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg transition flex items-center space-x-1.5 shadow-sm" title="Carregar 5 containers de exemplo com dados dos áudios">
+              <i data-lucide="sparkles" class="w-3.5 h-3.5"></i>
+              <span>Carregar Teste</span>
+            </button>
+
+            <button id="btn-new-shipment" class="px-3 py-1.5 text-xs font-medium bg-blue-600 hover:bg-blue-500 text-white rounded-lg transition flex items-center space-x-1.5 shadow-sm">
+              <i data-lucide="plus" class="w-3.5 h-3.5"></i>
+              <span class="hidden sm:inline">Novo Embarque</span>
+            </button>
+
+            <div class="relative group">
+              <button id="btn-backup-menu" class="p-2 text-slate-300 hover:text-white bg-slate-800 hover:bg-slate-700 rounded-lg transition">
+                <i data-lucide="settings" class="w-4 h-4"></i>
+              </button>
+              <div class="absolute right-0 mt-2 w-48 bg-white text-slate-800 rounded-lg shadow-xl border border-slate-200 py-1 hidden group-hover:block z-50">
+                <button id="btn-export-backup" class="w-full text-left px-4 py-2 text-xs hover:bg-slate-100 flex items-center space-x-2">
+                  <i data-lucide="download" class="w-3.5 h-3.5 text-slate-500"></i>
+                  <span>Exportar Backup (JSON)</span>
+                </button>
+                <label class="w-full text-left px-4 py-2 text-xs hover:bg-slate-100 flex items-center space-x-2 cursor-pointer">
+                  <i data-lucide="upload" class="w-3.5 h-3.5 text-slate-500"></i>
+                  <span>Restaurar Backup</span>
+                  <input type="file" id="input-restore-backup" accept=".json" class="hidden">
+                </label>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Navegação por Abas Principais -->
+    <div id="tab-buttons" class="bg-slate-950/70 border-t border-slate-800">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex space-x-1 overflow-x-auto py-1">
+        <button class="nav-tab active px-4 py-2.5 text-xs font-semibold rounded-t-lg transition flex items-center space-x-2 text-blue-400 border-b-2 border-blue-500 bg-slate-900" data-tab="tab-dashboard">
+          <i data-lucide="layout-dashboard" class="w-4 h-4"></i>
+          <span>Dashboard & Prazos</span>
+        </button>
+        <button class="nav-tab px-4 py-2.5 text-xs font-medium rounded-t-lg transition flex items-center space-x-2 text-slate-400 hover:text-slate-200 hover:bg-slate-900/50" data-tab="tab-nfe">
+          <i data-lucide="file-code" class="w-4 h-4"></i>
+          <span>1. Notas Fiscais (XML)</span>
+          <span id="badge-nfe-count" class="ml-1 px-1.5 py-0.2 bg-slate-800 text-[10px] rounded-full hidden">0</span>
+        </button>
+        <button class="nav-tab px-4 py-2.5 text-xs font-medium rounded-t-lg transition flex items-center space-x-2 text-slate-400 hover:text-slate-200 hover:bg-slate-900/50" data-tab="tab-booking">
+          <i data-lucide="ship" class="w-4 h-4"></i>
+          <span>2. Booking & Embarque</span>
+        </button>
+        <button class="nav-tab px-4 py-2.5 text-xs font-medium rounded-t-lg transition flex items-center space-x-2 text-slate-400 hover:text-slate-200 hover:bg-slate-900/50" data-tab="tab-containers">
+          <i data-lucide="box" class="w-4 h-4"></i>
+          <span>3. Carga & VGM</span>
+          <span id="badge-container-count" class="ml-1 px-1.5 py-0.2 bg-blue-600 text-white text-[10px] rounded-full">1</span>
+        </button>
+        <button class="nav-tab px-4 py-2.5 text-xs font-medium rounded-t-lg transition flex items-center space-x-2 text-slate-400 hover:text-slate-200 hover:bg-slate-900/50" data-tab="tab-documents">
+          <i data-lucide="file-text" class="w-4 h-4"></i>
+          <span>4. Documentos Finais</span>
+        </button>
+        <button class="nav-tab px-4 py-2.5 text-xs font-medium rounded-t-lg transition flex items-center space-x-2 text-slate-400 hover:text-slate-200 hover:bg-slate-900/50" data-tab="tab-history">
+          <i data-lucide="check-circle-2" class="w-4 h-4"></i>
+          <span>Concluídos / Histórico</span>
+          <span id="badge-completed-count" class="ml-1 px-1.5 py-0.2 bg-slate-800 text-[10px] rounded-full">0</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Banner de Resumo Rápido e Alerta de Carga -->
+  <div id="sticky-summary-bar" class="bg-white border-b border-slate-200 shadow-sm py-2 px-4 text-xs">
+    <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-3">
+      <div class="flex items-center space-x-3">
+        <span class="font-bold text-slate-700 flex items-center">
+          <i data-lucide="anchor" class="w-3.5 h-3.5 mr-1 text-blue-600"></i>
+          <span id="bar-booking-ref">Booking: --</span>
+        </span>
+        <span class="text-slate-300">|</span>
+        <span class="text-slate-600" id="bar-vessel-ref">Navio: --</span>
+        <span class="text-slate-300">|</span>
+        <span class="text-slate-600" id="bar-pol-pod-ref">POL -> POD</span>
+      </div>
+
+      <div class="flex items-center space-x-4">
+        <div><span class="text-slate-400">Containers:</span> <strong id="bar-cnt-count" class="font-mono text-slate-800">0</strong></div>
+        <div><span class="text-slate-400">Pallets:</span> <strong id="bar-pallets-count" class="font-mono text-slate-800">0</strong></div>
+        <div><span class="text-slate-400">Volume:</span> <strong id="bar-volume-m3" class="font-mono text-slate-800">0.000 m³</strong></div>
+        <div><span class="text-slate-400">VGM Total:</span> <strong id="bar-total-vgm" class="font-mono text-slate-800">0 kg</strong></div>
+        <div><span class="text-slate-400">Valor USD:</span> <strong id="bar-total-usd" class="font-mono text-blue-600">$0.00</strong></div>
+        <div id="bar-payload-badge" class="px-2 py-0.5 rounded text-[11px] font-bold bg-emerald-100 text-emerald-800">
+          VGM OK
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Conteúdo Principal Dinâmico -->
+  <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+
+    <!-- ==================== ABA 0: DASHBOARD & PRAZOS ==================== -->
+    <div id="tab-dashboard" class="tab-content active space-y-6">
+      
+      <!-- Cards de Deadlines (Draft & Carga) -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        
+        <!-- Card Deadline de Draft -->
+        <div id="card-deadline-draft" class="bg-white rounded-xl border border-slate-200 p-6 shadow-sm relative overflow-hidden">
+          <div class="flex items-start justify-between">
+            <div>
+              <span class="text-[11px] font-bold uppercase tracking-wider text-slate-500">Prazo Crítico Nº 1</span>
+              <h3 class="text-lg font-bold text-slate-900 mt-0.5 flex items-center">
+                <i data-lucide="file-clock" class="w-5 h-5 mr-2 text-indigo-600"></i>
+                Deadline de Draft (BL)
+              </h3>
+              <p class="text-xs text-slate-500 mt-1">Limite para entrega da instrução de embarque ao armador.</p>
+            </div>
+            <span id="badge-status-draft" class="px-2.5 py-1 text-xs font-bold rounded-full bg-slate-100 text-slate-700">
+              Aguardando Data
+            </span>
+          </div>
+
+          <div class="mt-5 p-4 rounded-lg bg-slate-50 border border-slate-200 flex items-center justify-between">
+            <div>
+              <span class="text-xs text-slate-500 block">Data & Hora Limite:</span>
+              <span id="text-date-draft" class="text-sm font-bold font-mono text-slate-800">Não configurada</span>
+            </div>
+            <div class="text-right">
+              <span class="text-xs text-slate-500 block">Contagem Regressiva:</span>
+              <span id="countdown-draft" class="text-base font-black font-mono text-slate-900">--:--:--</span>
+            </div>
+          </div>
+
+          <div class="mt-4 flex items-center justify-between">
+            <button id="btn-toggle-draft-sent" class="px-4 py-2 text-xs font-semibold rounded-lg bg-slate-800 hover:bg-slate-700 text-white transition flex items-center space-x-1.5">
+              <i data-lucide="check" class="w-4 h-4"></i>
+              <span id="label-draft-sent">Marcar como Enviado ao Armador</span>
+            </button>
+            <span class="text-[11px] text-slate-400">Evita multa de retificação</span>
+          </div>
+        </div>
+
+        <!-- Card Deadline de Carga (Porto) -->
+        <div id="card-deadline-cargo" class="bg-white rounded-xl border border-slate-200 p-6 shadow-sm relative overflow-hidden">
+          <div class="flex items-start justify-between">
+            <div>
+              <span class="text-[11px] font-bold uppercase tracking-wider text-slate-500">Prazo Crítico Nº 2</span>
+              <h3 class="text-lg font-bold text-slate-900 mt-0.5 flex items-center">
+                <i data-lucide="truck" class="w-5 h-5 mr-2 text-blue-600"></i>
+                Deadline de Carga no Porto
+              </h3>
+              <p class="text-xs text-slate-500 mt-1">Limite para entrada física do container no terminal portuário.</p>
+            </div>
+            <span id="badge-status-cargo" class="px-2.5 py-1 text-xs font-bold rounded-full bg-slate-100 text-slate-700">
+              Aguardando Data
+            </span>
+          </div>
+
+          <div class="mt-5 p-4 rounded-lg bg-slate-50 border border-slate-200 flex items-center justify-between">
+            <div>
+              <span class="text-xs text-slate-500 block">Data & Hora Limite:</span>
+              <span id="text-date-cargo" class="text-sm font-bold font-mono text-slate-800">Não configurada</span>
+            </div>
+            <div class="text-right">
+              <span class="text-xs text-slate-500 block">Contagem Regressiva:</span>
+              <span id="countdown-cargo" class="text-base font-black font-mono text-slate-900">--:--:--</span>
+            </div>
+          </div>
+
+          <div class="mt-4 flex items-center justify-between">
+            <button id="btn-toggle-cargo-delivered" class="px-4 py-2 text-xs font-semibold rounded-lg bg-slate-800 hover:bg-slate-700 text-white transition flex items-center space-x-1.5">
+              <i data-lucide="check" class="w-4 h-4"></i>
+              <span id="label-cargo-delivered">Marcar como Entregue no Porto</span>
+            </button>
+            <span class="text-[11px] text-slate-400">Evita rolagem de carga</span>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Embarques Ativos em Andamento -->
+      <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+        <div class="p-5 border-b border-slate-200 flex items-center justify-between bg-slate-50">
+          <div>
+            <h3 class="font-bold text-slate-900 flex items-center">
+              <i data-lucide="layers" class="w-4 h-4 mr-2 text-blue-600"></i>
+              Meus Embarques em Andamento
+            </h3>
+            <p class="text-xs text-slate-500 mt-0.5">Selecione para editar ou crie novos processos.</p>
+          </div>
+          <button id="btn-quick-new" class="px-3 py-1.5 text-xs font-semibold bg-blue-600 hover:bg-blue-500 text-white rounded-lg transition flex items-center space-x-1">
+            <i data-lucide="plus" class="w-3.5 h-3.5"></i>
+            <span>Novo</span>
+          </button>
+        </div>
+
+        <div id="shipments-active-list" class="divide-y divide-slate-100">
+          <!-- Renderizado via app.js -->
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ==================== ABA 1: NOTAS FISCAIS (XML) ==================== -->
+    <div id="tab-nfe" class="tab-content space-y-6">
+      
+      <!-- Zona de Arraste de XML -->
+      <div class="bg-white p-8 rounded-xl border-2 border-dashed border-slate-300 hover:border-blue-500 transition text-center cursor-pointer relative" id="drop-zone-xml">
+        <input type="file" id="input-file-xml" multiple accept=".xml" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer">
+        <div class="flex flex-col items-center justify-center space-y-3">
+          <div class="p-3 bg-blue-50 text-blue-600 rounded-full">
+            <i data-lucide="file-up" class="w-8 h-8"></i>
+          </div>
+          <div>
+            <h4 class="text-base font-bold text-slate-800">Arraste os arquivos XML das Notas Fiscais aqui</h4>
+            <p class="text-xs text-slate-500 mt-1">Ou clique para selecionar um ou múltiplos arquivos .xml da fábrica</p>
+          </div>
+          <span class="text-[11px] text-slate-400 bg-slate-100 px-3 py-1 rounded-full">
+            Leitura 100% segura e privada (processada no seu navegador sem envio a servidores)
+          </span>
+        </div>
+      </div>
+
+      <!-- Tabela de Itens e Notas Importadas -->
+      <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+        <div class="p-4 border-b border-slate-200 bg-slate-50 flex items-center justify-between">
+          <h4 class="font-bold text-slate-900 text-sm flex items-center">
+            <i data-lucide="list-checks" class="w-4 h-4 mr-2 text-blue-600"></i>
+            Itens Extraídos das Notas Fiscais
+          </h4>
+          <span id="nfe-summary-text" class="text-xs text-slate-500 font-mono">0 notas importadas</span>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs">
+            <thead class="bg-slate-100 border-b border-slate-200 text-slate-600 font-semibold uppercase text-[10px]">
+              <tr>
+                <th class="p-3">NF-e</th>
+                <th class="p-3">Código</th>
+                <th class="p-3">Descrição da Mercadoria</th>
+                <th class="p-3">NCM</th>
+                <th class="p-3 text-right">Qtd</th>
+                <th class="p-3 text-right">Unidade</th>
+                <th class="p-3 text-right">Valor Unit.</th>
+                <th class="p-3 text-right">Valor Total (R$)</th>
+              </tr>
+            </thead>
+            <tbody id="tbody-nfe-items" class="divide-y divide-slate-100">
+              <tr>
+                <td colspan="8" class="p-8 text-center text-slate-400 italic">
+                  Nenhuma nota fiscal importada ainda. Arraste os XMLs acima ou use o botão "Carregar Teste".
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ==================== ABA 2: BOOKING & EMBARQUE ==================== -->
+    <div id="tab-booking" class="tab-content space-y-6">
+      
+      <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6 space-y-6">
+        
+        <div>
+          <h3 class="text-base font-bold text-slate-900 flex items-center">
+            <i data-lucide="anchor" class="w-5 h-5 mr-2 text-blue-600"></i>
+            Dados da Reserva (Booking) e Transporte Marítimo
+          </h3>
+          <p class="text-xs text-slate-500 mt-0.5">Informações constantes na confirmação de reserva do armador.</p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
+          <div>
+            <label class="block font-semibold text-slate-700 mb-1">Número do Booking *</label>
+            <input type="text" id="inp-booking-num" class="w-full p-2.5 border border-slate-300 rounded-lg font-mono focus:ring-2 focus:ring-blue-500 focus:outline-none" placeholder="Ex: MAE-9843210-BR">
+          </div>
+          <div>
+            <label class="block font-semibold text-slate-700 mb-1">Armador (Carrier)</label>
+            <input type="text" id="inp-carrier" class="w-full p-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none" placeholder="Maersk, MSC, Hapag-Lloyd...">
+          </div>
+          <div>
+            <label class="block font-semibold text-slate-700 mb-1">Contrato / Referência</label>
+            <input type="text" id="inp-contract-num" class="w-full p-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none" placeholder="Ex: CTR-2026-EU-084">
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 text-xs">
+          <div>
+            <label class="block font-semibold text-slate-700 mb-1">Nome do Navio (Vessel)</label>
+            <input type="text" id="inp-vessel" class="w-full p-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none" placeholder="Ex: CAP SAN ARTEMISIO">
+          </div>
+          <div>
+            <label class="block font-semibold text-slate-700 mb-1">Viagem (Voyage)</label>
+            <input type="text" id="inp-voyage" class="w-full p-2.5 border border-slate-300 rounded-lg font-mono focus:ring-2 focus:ring-blue-500 focus:outline-none" placeholder="Ex: 428W">
+          </div>
+          <div>
+            <label class="block font-semibold text-slate-700 mb-1">Porto de Embarque (POL)</label>
+            <input type="text" id="inp-pol" class="w-full p-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none" placeholder="Ex: Paranaguá, PR">
+          </div>
+          <div>
+            <label class="block font-semibold text-slate-700 mb-1">Porto de Destino (POD)</label>
+            <input type="text" id="inp-pod" class="w-full p-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none" placeholder="Ex: Rotterdam, Holanda">
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs bg-slate-50 p-4 rounded-lg border border-slate-200">
+          <div>
+            <label class="block font-bold text-slate-700 mb-1 flex items-center text-indigo-700">
+              <i data-lucide="clock" class="w-3.5 h-3.5 mr-1"></i>
+              Deadline de Draft (Instrução do BL)
+            </label>
+            <input type="datetime-local" id="inp-deadline-draft" class="w-full p-2 border border-slate-300 rounded-lg font-mono focus:ring-2 focus:ring-indigo-500 focus:outline-none bg-white">
+            <span class="text-[10px] text-slate-500 mt-1 block">Prazo final para envio dos dados ao armador</span>
+          </div>
+          <div>
+            <label class="block font-bold text-slate-700 mb-1 flex items-center text-blue-700">
+              <i data-lucide="truck" class="w-3.5 h-3.5 mr-1"></i>
+              Deadline de Carga no Porto
+            </label>
+            <input type="datetime-local" id="inp-deadline-cargo" class="w-full p-2 border border-slate-300 rounded-lg font-mono focus:ring-2 focus:ring-blue-500 focus:outline-none bg-white">
+            <span class="text-[10px] text-slate-500 mt-1 block">Prazo final para entrega física do container</span>
+          </div>
+        </div>
+
+        <hr class="border-slate-200">
+
+        <!-- Partes Envolvidas -->
+        <div>
+          <h4 class="text-sm font-bold text-slate-900 mb-3 flex items-center">
+            <i data-lucide="users" class="w-4 h-4 mr-2 text-slate-600"></i>
+            Partes Intervenientes (Shipper, Consignee & Notify)
+          </h4>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
+            
+            <div class="space-y-2 bg-slate-50 p-3 rounded-lg border border-slate-200">
+              <span class="font-bold text-slate-800 uppercase block text-[11px]">1. Shipper / Exportador</span>
+              <input type="text" id="inp-shipper-name" class="w-full p-2 border border-slate-300 rounded bg-white" placeholder="Razão Social">
+              <textarea id="inp-shipper-address" rows="3" class="w-full p-2 border border-slate-300 rounded bg-white text-[11px]" placeholder="Endereço Completo, Cidade/UF, Brasil"></textarea>
+              <input type="text" id="inp-shipper-taxid" class="w-full p-2 border border-slate-300 rounded bg-white font-mono" placeholder="CNPJ: 00.000.000/0001-00">
+            </div>
+
+            <div class="space-y-2 bg-slate-50 p-3 rounded-lg border border-slate-200">
+              <span class="font-bold text-slate-800 uppercase block text-[11px]">2. Consignee / Importador</span>
+              <input type="text" id="inp-consignee-name" class="w-full p-2 border border-slate-300 rounded bg-white" placeholder="Empresa Importadora no Destino">
+              <textarea id="inp-consignee-address" rows="3" class="w-full p-2 border border-slate-300 rounded bg-white text-[11px]" placeholder="Endereço no exterior / Porto"></textarea>
+              <input type="text" id="inp-consignee-taxid" class="w-full p-2 border border-slate-300 rounded bg-white font-mono" placeholder="Tax ID / VAT">
+            </div>
+
+            <div class="space-y-2 bg-slate-50 p-3 rounded-lg border border-slate-200">
+              <span class="font-bold text-slate-800 uppercase block text-[11px]">3. Notify Party</span>
+              <input type="text" id="inp-notify-name" class="w-full p-2 border border-slate-300 rounded bg-white" placeholder="Ex: SAME AS CONSIGNEE ou Agente local">
+              <textarea id="inp-notify-address" rows="3" class="w-full p-2 border border-slate-300 rounded bg-white text-[11px]" placeholder="Endereço do Notificado"></textarea>
+              <input type="text" id="inp-notify-taxid" class="w-full p-2 border border-slate-300 rounded bg-white font-mono" placeholder="Tax ID / Notificação">
+            </div>
+
+          </div>
+        </div>
+
+        <hr class="border-slate-200">
+
+        <!-- Detalhes Fiscais / Aduaneiros -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 text-xs">
+          <div>
+            <label class="block font-semibold text-slate-700 mb-1">NCM / Classificação Fiscal</label>
+            <input type="text" id="inp-ncm" class="w-full p-2.5 border border-slate-300 rounded-lg font-mono" placeholder="4412.39.00">
+          </div>
+          <div>
+            <label class="block font-semibold text-slate-700 mb-1">DU-E (Declaração de Exportação)</label>
+            <input type="text" id="inp-due" class="w-full p-2.5 border border-slate-300 rounded-lg font-mono" placeholder="26BR000000000-0">
+          </div>
+          <div>
+            <label class="block font-semibold text-slate-700 mb-1">RUC (Ref. Única de Carga)</label>
+            <input type="text" id="inp-ruc" class="w-full p-2.5 border border-slate-300 rounded-lg font-mono" placeholder="6BR00000000000000000001">
+          </div>
+          <div>
+            <label class="block font-semibold text-slate-700 mb-1">Cláusula de Frete / BL</label>
+            <select id="inp-freight-term" class="w-full p-2.5 border border-slate-300 rounded-lg bg-white">
+              <option value="Prepaid">Freight Prepaid (Pago na Origem)</option>
+              <option value="Collect">Freight Collect (Pago no Destino)</option>
+              <option value="Payable elsewhere">Payable elsewhere</option>
+            </select>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- ==================== ABA 3: CONTAINERS, CUBAGEM & VGM ==================== -->
+    <div id="tab-containers" class="tab-content space-y-6">
+      
+      <div class="flex items-center justify-between">
+        <div>
+          <h3 class="text-base font-bold text-slate-900 flex items-center">
+            <i data-lucide="boxes" class="w-5 h-5 mr-2 text-blue-600"></i>
+            Containers, Dimensões e Validação de VGM
+          </h3>
+          <p class="text-xs text-slate-500 mt-0.5">Configure cada container. O sistema calcula a metragem cúbica ($m^3$) e valida se o VGM não estoura o Payload (32.500 kg).</p>
+        </div>
+        <button id="btn-add-container" class="px-4 py-2 text-xs font-semibold bg-blue-600 hover:bg-blue-500 text-white rounded-lg transition flex items-center space-x-1.5 shadow-sm">
+          <i data-lucide="plus-circle" class="w-4 h-4"></i>
+          <span>Adicionar Container</span>
+        </button>
+      </div>
+
+      <!-- Lista de Containers Editáveis -->
+      <div id="containers-list" class="space-y-4">
+        <!-- Renderizado dinamicamente via app.js -->
+      </div>
+
+    </div>
+
+    <!-- ==================== ABA 4: DOCUMENTOS FINAIS ==================== -->
+    <div id="tab-documents" class="tab-content space-y-6">
+      
+      <!-- Barra de Ações de Documentos -->
+      <div id="action-toolbar" class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-wrap items-center justify-between gap-4">
+        
+        <!-- Seleção do Documento Ativo -->
+        <div class="flex items-center space-x-2">
+          <span class="text-xs font-bold text-slate-600">Exibir Documento:</span>
+          <div class="inline-flex rounded-lg border border-slate-200 p-1 bg-slate-50 text-xs">
+            <button class="doc-subtab active px-3 py-1.5 font-semibold rounded-md transition text-blue-700 bg-white shadow-sm" data-doc="invoice">
+              Commercial Invoice
+            </button>
+            <button class="doc-subtab px-3 py-1.5 font-semibold rounded-md transition text-slate-600 hover:text-slate-900" data-doc="packing">
+              Packing List
+            </button>
+            <button class="doc-subtab px-3 py-1.5 font-semibold rounded-md transition text-slate-600 hover:text-slate-900" data-doc="draft">
+              Draft do B/L
+            </button>
+            <button class="doc-subtab px-3 py-1.5 font-semibold rounded-md transition text-slate-600 hover:text-slate-900" data-doc="vgm">
+              Declaração de VGM
+            </button>
+          </div>
+        </div>
+
+        <!-- Botões de Ação -->
+        <div class="flex items-center space-x-2">
+          <button id="btn-copy-doc-text" class="px-3 py-1.5 text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg transition flex items-center space-x-1.5 border border-slate-300">
+            <i data-lucide="copy" class="w-3.5 h-3.5"></i>
+            <span>Copiar Texto</span>
+          </button>
+          <button id="btn-export-excel" class="px-3 py-1.5 text-xs font-semibold bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg transition flex items-center space-x-1.5 shadow-sm">
+            <i data-lucide="file-spreadsheet" class="w-3.5 h-3.5"></i>
+            <span>Exportar Excel (.xlsx)</span>
+          </button>
+          <button id="btn-print-doc" class="px-4 py-1.5 text-xs font-semibold bg-blue-600 hover:bg-blue-500 text-white rounded-lg transition flex items-center space-x-1.5 shadow-sm">
+            <i data-lucide="printer" class="w-3.5 h-3.5"></i>
+            <span>Imprimir / Salvar em PDF</span>
+          </button>
+          <button id="btn-mark-completed" class="px-3 py-1.5 text-xs font-semibold bg-slate-800 hover:bg-slate-900 text-white rounded-lg transition flex items-center space-x-1.5 shadow-sm ml-2">
+            <i data-lucide="check-check" class="w-3.5 h-3.5 text-emerald-400"></i>
+            <span>Concluir Embarque</span>
+          </button>
+        </div>
+
+      </div>
+
+      <!-- Área de Visualização do Documento -->
+      <div id="document-preview-container" class="bg-slate-200/50 p-4 sm:p-8 rounded-xl border border-slate-300 min-h-[500px]">
+        <!-- Conteúdo HTML do documento renderizado -->
+      </div>
+
+    </div>
+
+    <!-- ==================== ABA 5: HISTÓRICO & CONCLUÍDOS ==================== -->
+    <div id="tab-history" class="tab-content space-y-6">
+      
+      <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
+        <div class="flex items-center justify-between mb-4 pb-4 border-b border-slate-200">
+          <div>
+            <h3 class="text-base font-bold text-slate-900 flex items-center">
+              <i data-lucide="archive" class="w-5 h-5 mr-2 text-emerald-600"></i>
+              Embarques Concluídos & Arquivados
+            </h3>
+            <p class="text-xs text-slate-500 mt-0.5">Embarques cujos drafts já foram enviados e cargas desembaraçadas. Você pode reabri-los ou reimprimir a qualquer momento.</p>
+          </div>
+        </div>
+
+        <div id="shipments-completed-list" class="divide-y divide-slate-100">
+          <!-- Renderizado dinamicamente -->
+        </div>
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- Rodapé -->
+  <footer id="footer" class="bg-white border-t border-slate-200 py-4 text-center text-xs text-slate-400 mt-auto">
+    <div class="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-2">
+      <p>ComexFlow • Plataforma de Automação de Comércio Exterior & Despacho Aduaneiro</p>
+      <p class="font-mono text-[11px] text-slate-500">Zero Server Cost • 100% Client-Side • LocalStorage Persisted</p>
+    </div>
+  </footer>
+
+  <!-- Scripts da Aplicação -->
+  <script src="js/storage.js"></script>
+  <script src="js/calculations.js"></script>
+  <script src="js/xml-parser.js"></script>
+  <script src="js/doc-generators.js"></script>
+  <script src="js/mock-data.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
