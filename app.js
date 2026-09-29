@@ -57,16 +57,23 @@ document.addEventListener('DOMContentLoaded', () => {
   // ==========================================
   // RENDERIZAÇÃO E FORMULÁRIOS
   // ==========================================
+  const allFormInputIds = [
+    'inp-invoice-num', 'inp-po-num', 'inp-booking-num', 'inp-bl-num',
+    'inp-carrier', 'inp-contract-num', 'inp-vessel', 'inp-voyage', 'inp-pol', 'inp-pod',
+    'inp-deadline-draft', 'inp-deadline-cargo',
+    'inp-shipper-name', 'inp-shipper-address', 'inp-shipper-taxid',
+    'inp-consignee-name', 'inp-consignee-taxid', 'inp-consignee-eori', 'inp-consignee-address', 'inp-consignee-email', 'inp-consignee-tel',
+    'inp-notify-name', 'inp-notify-taxid', 'inp-notify-eori', 'inp-notify-address', 'inp-notify-email', 'inp-notify-tel',
+    'inp-ncm', 'inp-taric', 'inp-rascunho', 'inp-due', 'inp-ruc',
+    'inp-dn-num', 'inp-dn-amount', 'inp-payment-terms',
+    'inp-plastic-kg', 'inp-metal-kg', 'inp-timber-kg',
+    'inp-goods-desc',
+    'inp-bank-intermediary', 'inp-bank-final', 'inp-bank-iban', 'inp-bank-beneficiary',
+    'inp-freight-term'
+  ];
+
   function clearForm() {
-    const inputIds = [
-      'inp-booking-num', 'inp-carrier', 'inp-contract-num', 'inp-vessel', 'inp-voyage',
-      'inp-pol', 'inp-pod', 'inp-deadline-draft', 'inp-deadline-cargo',
-      'inp-shipper-name', 'inp-shipper-address', 'inp-shipper-taxid',
-      'inp-consignee-name', 'inp-consignee-address', 'inp-consignee-taxid',
-      'inp-notify-name', 'inp-notify-address', 'inp-notify-taxid',
-      'inp-ncm', 'inp-due', 'inp-ruc'
-    ];
-    inputIds.forEach(id => {
+    allFormInputIds.forEach(id => {
       const el = document.getElementById(id);
       if (el) el.value = '';
     });
@@ -90,35 +97,65 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     const b = shipment.booking || {};
 
-    // Booking & Embarque
-    document.getElementById('inp-booking-num').value = b.bookingNumber || '';
-    document.getElementById('inp-carrier').value = b.carrier || '';
-    document.getElementById('inp-contract-num').value = b.contractNumber || '';
-    document.getElementById('inp-vessel').value = b.vessel || '';
-    document.getElementById('inp-voyage').value = b.voyage || '';
-    document.getElementById('inp-pol').value = b.pol || '';
-    document.getElementById('inp-pod').value = b.pod || '';
-    document.getElementById('inp-deadline-draft').value = b.draftDeadline || '';
-    document.getElementById('inp-deadline-cargo').value = b.cargoDeadline || '';
+    const setVal = (id, val) => {
+      const el = document.getElementById(id);
+      if (el) el.value = val !== undefined && val !== null ? val : '';
+    };
 
-    // Partes
-    document.getElementById('inp-shipper-name').value = b.shipper?.name || '';
-    document.getElementById('inp-shipper-address').value = b.shipper?.address || '';
-    document.getElementById('inp-shipper-taxid').value = b.shipper?.taxId || '';
+    setVal('inp-invoice-num', b.invoiceNumber || '');
+    setVal('inp-po-num', b.purchaseOrder || b.contractNumber || '');
+    setVal('inp-booking-num', b.bookingNumber || '');
+    setVal('inp-bl-num', b.blNumber || '');
+    setVal('inp-carrier', b.carrier || '');
+    setVal('inp-contract-num', b.contractNumber || '');
+    setVal('inp-vessel', b.vessel || '');
+    setVal('inp-voyage', b.voyage || '');
+    setVal('inp-pol', b.pol || '');
+    setVal('inp-pod', b.pod || '');
+    setVal('inp-deadline-draft', b.draftDeadline || '');
+    setVal('inp-deadline-cargo', b.cargoDeadline || '');
 
-    document.getElementById('inp-consignee-name').value = b.consignee?.name || '';
-    document.getElementById('inp-consignee-address').value = b.consignee?.address || '';
-    document.getElementById('inp-consignee-taxid').value = b.consignee?.taxId || '';
+    setVal('inp-shipper-name', b.shipper?.name || '');
+    setVal('inp-shipper-address', b.shipper?.address || '');
+    setVal('inp-shipper-taxid', b.shipper?.taxId || '');
 
-    document.getElementById('inp-notify-name').value = b.notify?.name || '';
-    document.getElementById('inp-notify-address').value = b.notify?.address || '';
-    document.getElementById('inp-notify-taxid').value = b.notify?.taxId || '';
+    setVal('inp-consignee-name', b.consignee?.name || '');
+    setVal('inp-consignee-taxid', b.consignee?.taxId || '');
+    setVal('inp-consignee-eori', b.consignee?.eori || '');
+    setVal('inp-consignee-address', b.consignee?.address || '');
+    setVal('inp-consignee-email', b.consignee?.email || '');
+    setVal('inp-consignee-tel', b.consignee?.tel || '');
 
-    // Aduaneiro
-    document.getElementById('inp-ncm').value = b.ncm || '';
-    document.getElementById('inp-due').value = b.dueNumber || '';
-    document.getElementById('inp-ruc').value = b.rucNumber || '';
-    document.getElementById('inp-freight-term').value = b.freightTerm || 'Prepaid';
+    setVal('inp-notify-name', b.notify?.name || '');
+    setVal('inp-notify-taxid', b.notify?.taxId || '');
+    setVal('inp-notify-eori', b.notify?.eori || '');
+    setVal('inp-notify-address', b.notify?.address || '');
+    setVal('inp-notify-email', b.notify?.email || '');
+    setVal('inp-notify-tel', b.notify?.tel || '');
+
+    setVal('inp-ncm', b.ncm || '');
+    setVal('inp-taric', b.taric || '');
+    setVal('inp-rascunho', b.rascunhoNumber || '');
+    setVal('inp-due', b.dueNumber || '');
+    setVal('inp-ruc', b.rucNumber || '');
+    setVal('inp-dn-num', b.debitNoteNumber || '');
+    setVal('inp-dn-amount', b.debitNoteAmount || '');
+    setVal('inp-payment-terms', b.paymentTerms || '');
+
+    const packing = b.packingMaterial || {};
+    setVal('inp-plastic-kg', packing.plasticKg || '');
+    setVal('inp-metal-kg', packing.metalKg || '');
+    setVal('inp-timber-kg', packing.timberKg || '');
+
+    setVal('inp-goods-desc', b.goodsDescription || '');
+
+    const banking = b.bankingDetails || {};
+    setVal('inp-bank-intermediary', banking.intermediaryBank || '');
+    setVal('inp-bank-final', banking.finalCredit || '');
+    setVal('inp-bank-iban', banking.iban || '');
+    setVal('inp-bank-beneficiary', banking.beneficiaryName || '');
+
+    setVal('inp-freight-term', b.freightTerm || 'Prepaid');
 
     // Status dos botões de checklist
     updateDraftButtonUI(b.draftSent);
@@ -133,19 +170,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Captura alterações em campos de texto e salva com debounce
   function bindInputAutoSave() {
-    const inputIds = [
-      'inp-booking-num', 'inp-carrier', 'inp-contract-num', 'inp-vessel', 'inp-voyage',
-      'inp-pol', 'inp-pod', 'inp-deadline-draft', 'inp-deadline-cargo',
-      'inp-shipper-name', 'inp-shipper-address', 'inp-shipper-taxid',
-      'inp-consignee-name', 'inp-consignee-address', 'inp-consignee-taxid',
-      'inp-notify-name', 'inp-notify-address', 'inp-notify-taxid',
-      'inp-ncm', 'inp-due', 'inp-ruc', 'inp-freight-term'
-    ];
-
-    inputIds.forEach(id => {
+    allFormInputIds.forEach(id => {
       const el = document.getElementById(id);
       if (el) {
         el.addEventListener('input', triggerAutoSave);
+        el.addEventListener('change', triggerAutoSave);
       }
     });
   }
@@ -160,6 +189,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (indicator) indicator.textContent = 'Salvo localmente';
       updateStickySummary();
       updateDeadlineCards();
+      renderCurrentDocument();
     }, 400);
   }
 
@@ -174,38 +204,73 @@ document.addEventListener('DOMContentLoaded', () => {
     currentShipment.booking = currentShipment.booking || {};
     const b = currentShipment.booking;
 
-    b.bookingNumber = document.getElementById('inp-booking-num').value.trim();
-    b.carrier = document.getElementById('inp-carrier').value.trim();
-    b.contractNumber = document.getElementById('inp-contract-num').value.trim();
-    b.vessel = document.getElementById('inp-vessel').value.trim();
-    b.voyage = document.getElementById('inp-voyage').value.trim();
-    b.pol = document.getElementById('inp-pol').value.trim();
-    b.pod = document.getElementById('inp-pod').value.trim();
-    b.draftDeadline = document.getElementById('inp-deadline-draft').value;
-    b.cargoDeadline = document.getElementById('inp-deadline-cargo').value;
+    const getVal = (id) => {
+      const el = document.getElementById(id);
+      return el ? el.value.trim() : '';
+    };
+
+    b.invoiceNumber = getVal('inp-invoice-num');
+    b.purchaseOrder = getVal('inp-po-num');
+    b.bookingNumber = getVal('inp-booking-num');
+    b.blNumber = getVal('inp-bl-num');
+    b.carrier = getVal('inp-carrier');
+    b.contractNumber = getVal('inp-contract-num') || b.purchaseOrder;
+    b.vessel = getVal('inp-vessel');
+    b.voyage = getVal('inp-voyage');
+    b.pol = getVal('inp-pol');
+    b.pod = getVal('inp-pod');
+    b.draftDeadline = document.getElementById('inp-deadline-draft')?.value || '';
+    b.cargoDeadline = document.getElementById('inp-deadline-cargo')?.value || '';
 
     b.shipper = {
-      name: document.getElementById('inp-shipper-name').value.trim(),
-      address: document.getElementById('inp-shipper-address').value.trim(),
-      taxId: document.getElementById('inp-shipper-taxid').value.trim()
+      name: getVal('inp-shipper-name'),
+      address: getVal('inp-shipper-address'),
+      taxId: getVal('inp-shipper-taxid')
     };
 
     b.consignee = {
-      name: document.getElementById('inp-consignee-name').value.trim(),
-      address: document.getElementById('inp-consignee-address').value.trim(),
-      taxId: document.getElementById('inp-consignee-taxid').value.trim()
+      name: getVal('inp-consignee-name'),
+      taxId: getVal('inp-consignee-taxid'),
+      eori: getVal('inp-consignee-eori'),
+      address: getVal('inp-consignee-address'),
+      email: getVal('inp-consignee-email'),
+      tel: getVal('inp-consignee-tel')
     };
 
     b.notify = {
-      name: document.getElementById('inp-notify-name').value.trim(),
-      address: document.getElementById('inp-notify-address').value.trim(),
-      taxId: document.getElementById('inp-notify-taxid').value.trim()
+      name: getVal('inp-notify-name'),
+      taxId: getVal('inp-notify-taxid'),
+      eori: getVal('inp-notify-eori'),
+      address: getVal('inp-notify-address'),
+      email: getVal('inp-notify-email'),
+      tel: getVal('inp-notify-tel')
     };
 
-    b.ncm = document.getElementById('inp-ncm').value.trim();
-    b.dueNumber = document.getElementById('inp-due').value.trim();
-    b.rucNumber = document.getElementById('inp-ruc').value.trim();
-    b.freightTerm = document.getElementById('inp-freight-term').value;
+    b.ncm = getVal('inp-ncm');
+    b.taric = getVal('inp-taric');
+    b.rascunhoNumber = getVal('inp-rascunho');
+    b.dueNumber = getVal('inp-due');
+    b.rucNumber = getVal('inp-ruc');
+    b.debitNoteNumber = getVal('inp-dn-num');
+    b.debitNoteAmount = parseFloat(document.getElementById('inp-dn-amount')?.value) || 0;
+    b.paymentTerms = getVal('inp-payment-terms');
+
+    b.packingMaterial = {
+      plasticKg: parseFloat(document.getElementById('inp-plastic-kg')?.value) || 0,
+      metalKg: parseFloat(document.getElementById('inp-metal-kg')?.value) || 0,
+      timberKg: parseFloat(document.getElementById('inp-timber-kg')?.value) || 0
+    };
+
+    b.goodsDescription = getVal('inp-goods-desc');
+
+    b.bankingDetails = {
+      intermediaryBank: getVal('inp-bank-intermediary'),
+      finalCredit: getVal('inp-bank-final'),
+      iban: getVal('inp-bank-iban'),
+      beneficiaryName: getVal('inp-bank-beneficiary')
+    };
+
+    b.freightTerm = document.getElementById('inp-freight-term')?.value || 'Prepaid';
 
     if (b.bookingNumber) {
       currentShipment.title = `Embarque ${b.bookingNumber} (${b.carrier || 'Navio'})`;

@@ -318,37 +318,52 @@
           </button>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 text-xs">
+          <div>
+            <label class="block font-semibold text-slate-700 mb-1">Número da Invoice *</label>
+            <input type="text" id="inp-invoice-num" class="w-full p-2.5 border border-slate-300 rounded-lg font-mono focus:ring-2 focus:ring-blue-500 focus:outline-none" placeholder="Ex: BRA 001/2026">
+          </div>
+          <div>
+            <label class="block font-semibold text-slate-700 mb-1">Purchase Order (PO#) *</label>
+            <input type="text" id="inp-po-num" class="w-full p-2.5 border border-slate-300 rounded-lg font-mono focus:ring-2 focus:ring-blue-500 focus:outline-none" placeholder="Ex: PO# 7309-1">
+          </div>
           <div>
             <label class="block font-semibold text-slate-700 mb-1">Número do Booking *</label>
-            <input type="text" id="inp-booking-num" class="w-full p-2.5 border border-slate-300 rounded-lg font-mono focus:ring-2 focus:ring-blue-500 focus:outline-none" placeholder="Ex: MAE-9843210-BR">
+            <input type="text" id="inp-booking-num" class="w-full p-2.5 border border-slate-300 rounded-lg font-mono focus:ring-2 focus:ring-blue-500 focus:outline-none" placeholder="Ex: S328771289">
           </div>
           <div>
-            <label class="block font-semibold text-slate-700 mb-1">Armador (Carrier)</label>
-            <input type="text" id="inp-carrier" class="w-full p-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none" placeholder="Maersk, MSC, Hapag-Lloyd...">
-          </div>
-          <div>
-            <label class="block font-semibold text-slate-700 mb-1">Contrato / Referência</label>
-            <input type="text" id="inp-contract-num" class="w-full p-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none" placeholder="Ex: CTR-2026-EU-084">
+            <label class="block font-semibold text-slate-700 mb-1">Número do B/L</label>
+            <input type="text" id="inp-bl-num" class="w-full p-2.5 border border-slate-300 rounded-lg font-mono focus:ring-2 focus:ring-blue-500 focus:outline-none" placeholder="Ex: SAFE01049577">
           </div>
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-4 gap-4 text-xs">
           <div>
+            <label class="block font-semibold text-slate-700 mb-1">Armador (Carrier)</label>
+            <input type="text" id="inp-carrier" class="w-full p-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none" placeholder="Safmarine / Maersk">
+          </div>
+          <div>
             <label class="block font-semibold text-slate-700 mb-1">Nome do Navio (Vessel)</label>
-            <input type="text" id="inp-vessel" class="w-full p-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none" placeholder="Ex: CAP SAN ARTEMISIO">
+            <input type="text" id="inp-vessel" class="w-full p-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none" placeholder="Ex: GRANDE BUENOS AIRES">
           </div>
           <div>
             <label class="block font-semibold text-slate-700 mb-1">Viagem (Voyage)</label>
-            <input type="text" id="inp-voyage" class="w-full p-2.5 border border-slate-300 rounded-lg font-mono focus:ring-2 focus:ring-blue-500 focus:outline-none" placeholder="Ex: 428W">
+            <input type="text" id="inp-voyage" class="w-full p-2.5 border border-slate-300 rounded-lg font-mono focus:ring-2 focus:ring-blue-500 focus:outline-none" placeholder="Ex: GBA0126">
           </div>
+          <div>
+            <label class="block font-semibold text-slate-700 mb-1">Contrato / Referência</label>
+            <input type="text" id="inp-contract-num" class="w-full p-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none" placeholder="Ex: PO# 7309-1">
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
           <div>
             <label class="block font-semibold text-slate-700 mb-1">Porto de Embarque (POL)</label>
-            <input type="text" id="inp-pol" class="w-full p-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none" placeholder="Ex: Paranaguá, PR">
+            <input type="text" id="inp-pol" class="w-full p-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none" placeholder="Ex: PARANAGUA, BRAZIL">
           </div>
           <div>
-            <label class="block font-semibold text-slate-700 mb-1">Porto de Destino (POD)</label>
-            <input type="text" id="inp-pod" class="w-full p-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none" placeholder="Ex: Rotterdam, Holanda">
+            <label class="block font-semibold text-slate-700 mb-1">Porto de Destino / Delivery To (POD)</label>
+            <input type="text" id="inp-pod" class="w-full p-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none" placeholder="Ex: TILBURY, UK">
           </div>
         </div>
 
@@ -382,24 +397,38 @@
           <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
             
             <div class="space-y-2 bg-slate-50 p-3 rounded-lg border border-slate-200">
-              <span class="font-bold text-slate-800 uppercase block text-[11px]">1. Shipper / Exportador</span>
-              <input type="text" id="inp-shipper-name" class="w-full p-2 border border-slate-300 rounded bg-white" placeholder="Razão Social">
-              <textarea id="inp-shipper-address" rows="3" class="w-full p-2 border border-slate-300 rounded bg-white text-[11px]" placeholder="Endereço Completo, Cidade/UF, Brasil"></textarea>
+              <span class="font-bold text-slate-800 uppercase block text-[11px]">1. Manufacturer / Shipper</span>
+              <input type="text" id="inp-shipper-name" class="w-full p-2 border border-slate-300 rounded bg-white font-semibold" placeholder="Razão Social (Ex: BRASNILE INDUSTRIAL LTDA)">
+              <textarea id="inp-shipper-address" rows="3" class="w-full p-2 border border-slate-300 rounded bg-white text-[11px]" placeholder="Endereço, Cidade/UF, Brasil"></textarea>
               <input type="text" id="inp-shipper-taxid" class="w-full p-2 border border-slate-300 rounded bg-white font-mono" placeholder="CNPJ: 00.000.000/0001-00">
             </div>
 
             <div class="space-y-2 bg-slate-50 p-3 rounded-lg border border-slate-200">
               <span class="font-bold text-slate-800 uppercase block text-[11px]">2. Consignee / Importador</span>
-              <input type="text" id="inp-consignee-name" class="w-full p-2 border border-slate-300 rounded bg-white" placeholder="Empresa Importadora no Destino">
-              <textarea id="inp-consignee-address" rows="3" class="w-full p-2 border border-slate-300 rounded bg-white text-[11px]" placeholder="Endereço no exterior / Porto"></textarea>
-              <input type="text" id="inp-consignee-taxid" class="w-full p-2 border border-slate-300 rounded bg-white font-mono" placeholder="Tax ID / VAT">
+              <input type="text" id="inp-consignee-name" class="w-full p-2 border border-slate-300 rounded bg-white font-semibold" placeholder="Razão Social (Ex: PLAUT INTERNATIONAL LIMITED)">
+              <div class="grid grid-cols-2 gap-2">
+                <input type="text" id="inp-consignee-taxid" class="w-full p-2 border border-slate-300 rounded bg-white font-mono" placeholder="VAT / Tax ID (GB...)">
+                <input type="text" id="inp-consignee-eori" class="w-full p-2 border border-slate-300 rounded bg-white font-mono" placeholder="EORI (GB...)">
+              </div>
+              <textarea id="inp-consignee-address" rows="2" class="w-full p-2 border border-slate-300 rounded bg-white text-[11px]" placeholder="Endereço completo no exterior"></textarea>
+              <div class="grid grid-cols-2 gap-2">
+                <input type="text" id="inp-consignee-email" class="w-full p-2 border border-slate-300 rounded bg-white text-[11px]" placeholder="E-mail">
+                <input type="text" id="inp-consignee-tel" class="w-full p-2 border border-slate-300 rounded bg-white text-[11px]" placeholder="Telefone">
+              </div>
             </div>
 
             <div class="space-y-2 bg-slate-50 p-3 rounded-lg border border-slate-200">
               <span class="font-bold text-slate-800 uppercase block text-[11px]">3. Notify Party</span>
-              <input type="text" id="inp-notify-name" class="w-full p-2 border border-slate-300 rounded bg-white" placeholder="Ex: SAME AS CONSIGNEE ou Agente local">
-              <textarea id="inp-notify-address" rows="3" class="w-full p-2 border border-slate-300 rounded bg-white text-[11px]" placeholder="Endereço do Notificado"></textarea>
-              <input type="text" id="inp-notify-taxid" class="w-full p-2 border border-slate-300 rounded bg-white font-mono" placeholder="Tax ID / Notificação">
+              <input type="text" id="inp-notify-name" class="w-full p-2 border border-slate-300 rounded bg-white font-semibold" placeholder="Razão Social (ou SAME AS CONSIGNEE)">
+              <div class="grid grid-cols-2 gap-2">
+                <input type="text" id="inp-notify-taxid" class="w-full p-2 border border-slate-300 rounded bg-white font-mono" placeholder="VAT / Tax ID">
+                <input type="text" id="inp-notify-eori" class="w-full p-2 border border-slate-300 rounded bg-white font-mono" placeholder="EORI">
+              </div>
+              <textarea id="inp-notify-address" rows="2" class="w-full p-2 border border-slate-300 rounded bg-white text-[11px]" placeholder="Endereço do Notificado"></textarea>
+              <div class="grid grid-cols-2 gap-2">
+                <input type="text" id="inp-notify-email" class="w-full p-2 border border-slate-300 rounded bg-white text-[11px]" placeholder="E-mail">
+                <input type="text" id="inp-notify-tel" class="w-full p-2 border border-slate-300 rounded bg-white text-[11px]" placeholder="Telefone">
+              </div>
             </div>
 
           </div>
@@ -408,26 +437,107 @@
         <hr class="border-slate-200">
 
         <!-- Detalhes Fiscais / Aduaneiros -->
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 text-xs">
-          <div>
-            <label class="block font-semibold text-slate-700 mb-1">NCM / Classificação Fiscal</label>
-            <input type="text" id="inp-ncm" class="w-full p-2.5 border border-slate-300 rounded-lg font-mono" placeholder="4412.39.00">
+        <div>
+          <h4 class="text-sm font-bold text-slate-900 mb-3 flex items-center">
+            <i data-lucide="file-text" class="w-4 h-4 mr-2 text-slate-600"></i>
+            Dados Aduaneiros, Códigos Fiscais & Pagamento
+          </h4>
+          <div class="grid grid-cols-1 md:grid-cols-4 gap-4 text-xs mb-4">
+            <div>
+              <label class="block font-semibold text-slate-700 mb-1">NCM</label>
+              <input type="text" id="inp-ncm" class="w-full p-2.5 border border-slate-300 rounded-lg font-mono" placeholder="44123900">
+            </div>
+            <div>
+              <label class="block font-semibold text-slate-700 mb-1">TARIC (União Europeia / UK)</label>
+              <input type="text" id="inp-taric" class="w-full p-2.5 border border-slate-300 rounded-lg font-mono" placeholder="89XV">
+            </div>
+            <div>
+              <label class="block font-semibold text-slate-700 mb-1">Rascunho NR</label>
+              <input type="text" id="inp-rascunho" class="w-full p-2.5 border border-slate-300 rounded-lg font-mono" placeholder="26RA0000003865">
+            </div>
+            <div>
+              <label class="block font-semibold text-slate-700 mb-1">DU-E (Declaração Única de Exportação)</label>
+              <input type="text" id="inp-due" class="w-full p-2.5 border border-slate-300 rounded-lg font-mono" placeholder="26BR000114682-1">
+            </div>
           </div>
-          <div>
-            <label class="block font-semibold text-slate-700 mb-1">DU-E (Declaração de Exportação)</label>
-            <input type="text" id="inp-due" class="w-full p-2.5 border border-slate-300 rounded-lg font-mono" placeholder="26BR000000000-0">
+
+          <div class="grid grid-cols-1 md:grid-cols-4 gap-4 text-xs">
+            <div>
+              <label class="block font-semibold text-slate-700 mb-1">RUC (Ref. Única de Carga)</label>
+              <input type="text" id="inp-ruc" class="w-full p-2.5 border border-slate-300 rounded-lg font-mono" placeholder="6BR785496152000000000000000BRA00126">
+            </div>
+            <div>
+              <label class="block font-semibold text-slate-700 mb-1">Ref. Débito / Desconto (DN)</label>
+              <input type="text" id="inp-dn-num" class="w-full p-2.5 border border-slate-300 rounded-lg font-mono" placeholder="Ex: DN 109936">
+            </div>
+            <div>
+              <label class="block font-semibold text-slate-700 mb-1">Valor do Desconto / DN (USD)</label>
+              <input type="number" step="0.01" id="inp-dn-amount" class="w-full p-2.5 border border-slate-300 rounded-lg font-mono" placeholder="Ex: 951.04">
+            </div>
+            <div>
+              <label class="block font-semibold text-slate-700 mb-1">Condição de Pagamento</label>
+              <input type="text" id="inp-payment-terms" class="w-full p-2.5 border border-slate-300 rounded-lg" placeholder="WIRE TRANSFER FAX DOCUMENTS">
+            </div>
           </div>
-          <div>
-            <label class="block font-semibold text-slate-700 mb-1">RUC (Ref. Única de Carga)</label>
-            <input type="text" id="inp-ruc" class="w-full p-2.5 border border-slate-300 rounded-lg font-mono" placeholder="6BR00000000000000000001">
+        </div>
+
+        <hr class="border-slate-200">
+
+        <!-- Material de Embalagem (Packing Material Information) -->
+        <div>
+          <h4 class="text-sm font-bold text-slate-900 mb-2 flex items-center">
+            <i data-lucide="package" class="w-4 h-4 mr-2 text-slate-600"></i>
+            Material de Embalagem (Packing Material Information)
+          </h4>
+          <p class="text-xs text-slate-500 mb-3">Pesos totais dos materiais de proteção exigidos no Packing List para alfândega europeia/UK.</p>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
+            <div>
+              <label class="block font-semibold text-slate-700 mb-1">Plastic (KG)</label>
+              <input type="number" step="0.01" id="inp-plastic-kg" class="w-full p-2.5 border border-slate-300 rounded-lg font-mono" placeholder="103.55">
+            </div>
+            <div>
+              <label class="block font-semibold text-slate-700 mb-1">Metal (KG)</label>
+              <input type="number" step="0.01" id="inp-metal-kg" class="w-full p-2.5 border border-slate-300 rounded-lg font-mono" placeholder="85.88">
+            </div>
+            <div>
+              <label class="block font-semibold text-slate-700 mb-1">Timber / Madeira (KG)</label>
+              <input type="number" step="0.01" id="inp-timber-kg" class="w-full p-2.5 border border-slate-300 rounded-lg font-mono" placeholder="537.50">
+            </div>
           </div>
+        </div>
+
+        <hr class="border-slate-200">
+
+        <!-- Descrição Oficial da Mercadoria & Dados Bancários -->
+        <div class="space-y-4">
           <div>
-            <label class="block font-semibold text-slate-700 mb-1">Cláusula de Frete / BL</label>
-            <select id="inp-freight-term" class="w-full p-2.5 border border-slate-300 rounded-lg bg-white">
-              <option value="Prepaid">Freight Prepaid (Pago na Origem)</option>
-              <option value="Collect">Freight Collect (Pago no Destino)</option>
-              <option value="Payable elsewhere">Payable elsewhere</option>
-            </select>
+            <label class="block font-bold text-slate-800 text-xs mb-1">Descrição Oficial da Mercadoria (OF THE GOODS)</label>
+            <textarea id="inp-goods-desc" rows="2" class="w-full p-2.5 border border-slate-300 rounded-lg font-mono text-xs" placeholder="05 X 40' HC CONTAINER SAID TO CONTAIN: 95 PACKAGES OF BRAZILIAN PINE PLYWOOD TAEDA WBP GLUE, QUALITY C+/C - EN314 - 2 CLASS 3 - (CE2+) - (FSC 100% CU-COC-865377)"></textarea>
+          </div>
+
+          <div class="p-4 bg-slate-50 border border-slate-200 rounded-lg space-y-3">
+            <h4 class="font-bold text-slate-900 text-xs uppercase flex items-center">
+              <i data-lucide="landmark" class="w-4 h-4 mr-2 text-slate-700"></i>
+              Dados Bancários Internacionais (Banking Details da Invoice)
+            </h4>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+              <div>
+                <label class="block font-semibold text-slate-700 mb-1">Banco Intermediário & SWIFT</label>
+                <textarea id="inp-bank-intermediary" rows="2" class="w-full p-2 border border-slate-300 rounded font-mono text-[11px]" placeholder="56a BANCO DO BRASIL S.A. _ NEW YORK _ U.S.A.&#10;SWIFT CODE: BRASUS33"></textarea>
+              </div>
+              <div>
+                <label class="block font-semibold text-slate-700 mb-1">Crédito Final & SWIFT</label>
+                <textarea id="inp-bank-final" rows="2" class="w-full p-2 border border-slate-300 rounded font-mono text-[11px]" placeholder="BANCO DO BRASIL S.A. _ Curitiba _ PR _ BRASIL&#10;57 A SWIFT CODE: BRASBRRJCTA"></textarea>
+              </div>
+              <div>
+                <label class="block font-semibold text-slate-700 mb-1">IBAN do Beneficiário</label>
+                <input type="text" id="inp-bank-iban" class="w-full p-2 border border-slate-300 rounded font-mono" placeholder="BR1700000000003430000030333C1">
+              </div>
+              <div>
+                <label class="block font-semibold text-slate-700 mb-1">Nome do Beneficiário</label>
+                <input type="text" id="inp-bank-beneficiary" class="w-full p-2 border border-slate-300 rounded font-semibold" placeholder="BRASNILE INDUSTRIAL LTDA">
+              </div>
+            </div>
           </div>
         </div>
 
