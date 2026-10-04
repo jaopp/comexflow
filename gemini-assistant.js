@@ -245,40 +245,50 @@ Retorne ESTRITAMENTE o JSON abaixo com os dados encontrados (deixe strings vazia
 }
 `;
 
-    console.log('[ComexGemini] Iniciando processamento com Gemini Flash (v2026.10.03)...');
+    console.log('[ComexGemini] Iniciando processamento com Gemini 3.8 Flash...');
 
-    // Modelos oficiais recomendados pela API do Google
-    const models = ['gemini-3.8-flash', 'gemini-2.5-flash'];
+    const model = 'gemini-3.8-flash';
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${encodeURIComponent(apiKey)}`;
+
+    const payload = {
+      contents: [
+        {
+          role: 'user',
+          parts: [
+            {
+              inlineData: {
+                mimeType: mimeType,
+                data: base64Data
+              }
+            },
+            {
+              text: promptInstructions
+            }
+          ]
+        }
+      ],
+      generationConfig: {
+        responseMimeType: 'application/json',
+        temperature: 0.1,
+        maxOutputTokens: 8192
+      },
+      safetySettings: [
+        { category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_NONE" },
+        { category: "HARM_CATEGORY_HATE_SPEECH", threshold: "BLOCK_NONE" },
+        { category: "HARM_CATEGORY_SEXUALLY_EXPLICIT", threshold: "BLOCK_NONE" },
+        { category: "HARM_CATEGORY_DANGEROUS_CONTENT", threshold: "BLOCK_NONE" }
+      ]
+    };
+
+    const maxAttempts = 3;
     let lastError = null;
 
-    for (const model of models) {
-      console.log(`[ComexGemini] Enviando requisição para modelo: ${model}`);
-      const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${encodeURIComponent(apiKey)}`;
-
-      const payload = {
-        contents: [
-          {
-            role: 'user',
-            parts: [
-              {
-                inlineData: {
-                  mimeType: mimeType,
-                  data: base64Data
-                }
-              },
-              {
-                text: promptInstructions
-              }
-            ]
-          }
-        ],
-        generationConfig: {
-          responseMimeType: 'application/json',
-          temperature: 0.1
-        }
-      };
-
+    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
       try {
+        if (attempt > 1 && onProgress) {
+          onProgress(`Tentativa ${attempt} de ${maxAttempts} com ${model}...`);
+        }
+
         const response = await fetch(url, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -289,6 +299,22 @@ Retorne ESTRITAMENTE o JSON abaixo com os dados encontrados (deixe strings vazia
           const errBody = await response.text();
           if (errBody.includes('API_KEY_INVALID') || errBody.includes('not valid')) {
             throw new Error('CHAVE_INVALIDA');
+          }
+          throw new Error(`Erro na API (${response.status}): ${errBody}`);
+        }
+
+        // Se bater no limite de taxa por minuto (Rate Limit 429) ou servidor ocupado (503/500)
+        if (response.status === 429 || response.status === 503 || response.status === 500) {
+          if (attempt < maxAttempts) {
+            const waitSecs = attempt * 3;
+            if (onProgress) {
+              onProgress(`Limite de requisições por minuto atingido (HTTP ${response.status}). Aguardando ${waitSecs}s para retentar automaticamente...`);
+            }
+            console.warn(`[ComexGemini] HTTP ${response.status}. Aguardando ${waitSecs}s...`);
+            await new Promise(resolve => setTimeout(resolve, waitSecs * 1000));
+            continue;
+          } else {
+            throw new Error(`O limite de requisições por minuto da sua conta gratuita do Google Gemini foi atingido temporariamente (Rate Limit - HTTP 429). Por favor, aguarde 15 a 20 segundos antes de enviar o próximo áudio.`);
           }
         }
 
@@ -302,6 +328,9 @@ Retorne ESTRITAMENTE o JSON abaixo com os dados encontrados (deixe strings vazia
         const textResponse = candidate?.content?.parts?.[0]?.text;
 
         if (!textResponse) {
+          if (candidate?.finishReason) {
+            throw new Error(`O modelo finalizou com status: ${candidate.finishReason}`);
+          }
           throw new Error('O modelo não retornou conteúdo estruturado.');
         }
 
@@ -315,7 +344,13 @@ Retorne ESTRITAMENTE o JSON abaixo com os dados encontrados (deixe strings vazia
         if (err.message === 'CHAVE_INVALIDA') {
           throw err;
         }
-        console.warn(`Tentativa com ${model} falhou, tentando próximo modelo...`, err);
+        if (err.message.includes('Rate Limit') || err.message.includes('CHAVE_INVALIDA')) {
+          throw err;
+        }
+        console.warn(`[ComexGemini] Tentativa ${attempt} falhou:`, err);
+        if (attempt < maxAttempts) {
+          await new Promise(resolve => setTimeout(resolve, 2000));
+        }
       }
     }
 
