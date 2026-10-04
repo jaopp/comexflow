@@ -412,6 +412,19 @@ Retorne ESTRITAMENTE o JSON abaixo com os dados encontrados (deixe strings vazia
       ['name', 'taxId', 'eori', 'address', 'email', 'tel'].forEach(k => mergeField(b.notify, k, eb.notify[k]));
     }
 
+    // Dados Bancários (se mencionados)
+    if (eb.bankingDetails) {
+      b.bankingDetails = b.bankingDetails || {};
+      ['intermediaryBank', 'finalCredit', 'iban', 'beneficiaryName'].forEach(k => {
+        mergeField(b.bankingDetails, k, eb.bankingDetails[k]);
+      });
+    }
+
+    // Dá um título descritivo ao embarque caso haja navio ou booking
+    if (b.vessel || b.bookingNumber) {
+      currentShipment.title = `Embarque ${b.vessel || ''} (${b.bookingNumber || b.invoiceNumber || 'Áudio'})`.trim();
+    }
+
     // Containers (se o áudio mencionou containers com dados reais)
     if (Array.isArray(extracted.containers) && extracted.containers.length > 0) {
       // Verifica se os containers extraídos têm ao menos containerNumber, palletsCount ou dimensões
