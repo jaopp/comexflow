@@ -1199,10 +1199,202 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   // ==========================================
+  // ASSISTENTE DE ÁUDIO COM GEMINI IA
+  // ==========================================
+  const modalGemini = document.getElementById('modal-gemini-config');
+  const inpGeminiKey = document.getElementById('inp-gemini-api-key');
+  const statusDot = document.getElementById('gemini-status-dot');
+  const alertKey = document.getElementById('gemini-key-alert');
+
+  function updateGeminiStatusUI() {
+    if (typeof ComexGemini === 'undefined') return;
+    const hasKey = ComexGemini.hasApiKey();
+    if (statusDot) {
+      statusDot.className = hasKey ? 'w-2 h-2 rounded-full bg-emerald-400 animate-pulse' : 'w-2 h-2 rounded-full bg-slate-300';
+      if (statusDot.parentElement) {
+        statusDot.parentElement.title = hasKey ? 'IA Gemini Configurada e Pronta ✅' : 'IA Gemini: Clique para configurar chave';
+      }
+    }
+    const readyBadge = document.getElementById('badge-gemini-ready');
+    if (readyBadge) {
+      readyBadge.textContent = hasKey ? 'Gemini 2.5 Flash Ativo ✅' : 'Aguardando Chave ⚠️';
+      readyBadge.className = hasKey ? 'text-[10px] text-emerald-400 font-semibold' : 'text-[10px] text-amber-400 font-semibold';
+    }
+  }
+
+  function openGeminiModal() {
+    if (modalGemini) {
+      if (inpGeminiKey && typeof ComexGemini !== 'undefined') {
+        inpGeminiKey.value = ComexGemini.getApiKey();
+      }
+      if (alertKey) alertKey.classList.add('hidden');
+      modalGemini.classList.remove('hidden');
+      if (window.lucide) lucide.createIcons();
+    }
+  }
+
+  function closeGeminiModal() {
+    if (modalGemini) {
+      modalGemini.classList.add('hidden');
+    }
+  }
+
+  document.getElementById('btn-open-gemini-modal')?.addEventListener('click', openGeminiModal);
+  document.getElementById('btn-close-gemini-modal')?.addEventListener('click', closeGeminiModal);
+  document.getElementById('btn-cancel-gemini-modal')?.addEventListener('click', closeGeminiModal);
+
+  document.getElementById('btn-toggle-key-visibility')?.addEventListener('click', () => {
+    if (inpGeminiKey) {
+      inpGeminiKey.type = inpGeminiKey.type === 'password' ? 'text' : 'password';
+    }
+  });
+
+  document.getElementById('btn-save-gemini-key')?.addEventListener('click', () => {
+    const key = inpGeminiKey ? inpGeminiKey.value.trim() : '';
+    if (key.length > 5) {
+      ComexGemini.setApiKey(key);
+      updateGeminiStatusUI();
+      closeGeminiModal();
+      alert('Chave do Gemini salva com sucesso no seu navegador!');
+    } else {
+      alert('Por favor, insira uma chave de API válida.');
+    }
+  });
+
+  document.getElementById('btn-remove-gemini-key')?.addEventListener('click', () => {
+    if (confirm('Deseja remover a chave do Gemini deste navegador?')) {
+      ComexGemini.setApiKey('');
+      if (inpGeminiKey) inpGeminiKey.value = '';
+      updateGeminiStatusUI();
+      closeGeminiModal();
+    }
+  });
+
+  // Gravação e Upload de Áudio
+  const btnAudioRecord = document.getElementById('btn-audio-record');
+  const btnAudioRecordText = document.getElementById('btn-audio-record-text');
+  const btnAudioStop = document.getElementById('btn-audio-stop');
+  const barRecording = document.getElementById('audio-recording-bar');
+  const timerDisplay = document.getElementById('audio-timer-display');
+  const barProcessing = document.getElementById('audio-processing-bar');
+  const textProcessing = document.getElementById('audio-processing-text');
+  const alertSummary = document.getElementById('audio-summary-alert');
+  const textSummary = document.getElementById('audio-summary-text');
+  const btnCloseSummary = document.getElementById('btn-close-audio-summary');
+  const inputAudioUpload = document.getElementById('input-audio-upload');
+
+  btnCloseSummary?.addEventListener('click', () => {
+    alertSummary?.classList.add('hidden');
+  });
+
+  async function handleAudioProcessing(audioBlobOrFile) {
+    if (typeof ComexGemini === 'undefined') return;
+
+    if (!ComexGemini.hasApiKey()) {
+      openGeminiModal();
+      alert('Configure a sua Chave de API do Gemini para processar áudios.');
+      return;
+    }
+
+    if (barProcessing) barProcessing.classList.remove('hidden');
+    if (alertSummary) alertSummary.classList.add('hidden');
+
+    try {
+      const extracted = await ComexGemini.processAudioWithGemini(audioBlobOrFile, (statusMsg) => {
+        if (textProcessing) textProcessing.textContent = statusMsg;
+      });
+
+      if (!currentShipment) {
+        currentShipment = comexStorage.createNewShipment('Embarque por Voz - ' + new Date().toLocaleDateString());
+      }
+
+      const result = ComexGemini.applyExtractedDataToShipment(extracted, currentShipment);
+      comexStorage.saveShipment(currentShipment);
+      populateForm(currentShipment);
+
+      if (barProcessing) barProcessing.classList.add('hidden');
+      if (alertSummary && textSummary) {
+        textSummary.innerHTML = `<strong>${result.summary}</strong><br><span class="text-[11px] text-emerald-200 mt-1 block">✓ ${result.changedFieldsCount} campos atualizados automaticamente nas abas de Booking e Carga.</span>`;
+        alertSummary.classList.remove('hidden');
+      }
+
+      if (window.lucide) lucide.createIcons();
+
+    } catch (err) {
+      if (barProcessing) barProcessing.classList.add('hidden');
+      if (err.message === 'CHAVE_NAO_CONFIGURADA' || err.message === 'CHAVE_INVALIDA') {
+        openGeminiModal();
+        alert('A chave de API informada é inválida ou expirou. Por favor, verifique a chave no Google AI Studio.');
+      } else {
+        alert('Erro ao processar o áudio: ' + err.message);
+      }
+    }
+  }
+
+  btnAudioRecord?.addEventListener('click', async () => {
+    if (typeof ComexGemini === 'undefined') return;
+
+    if (ComexGemini.isRecording()) {
+      btnAudioStop?.click();
+      return;
+    }
+
+    if (!ComexGemini.hasApiKey()) {
+      openGeminiModal();
+      alert('Configure a sua Chave de API do Gemini para começar.');
+      return;
+    }
+
+    try {
+      await ComexGemini.startRecording((timeStr) => {
+        if (timerDisplay) timerDisplay.textContent = timeStr;
+      });
+
+      if (barRecording) barRecording.classList.remove('hidden');
+      if (btnAudioRecordText) btnAudioRecordText.textContent = 'Gravando... (Clique para parar)';
+      if (btnAudioRecord) {
+        btnAudioRecord.classList.remove('bg-purple-600', 'hover:bg-purple-500');
+        btnAudioRecord.classList.add('bg-rose-600', 'hover:bg-rose-500');
+      }
+      if (window.lucide) lucide.createIcons();
+
+    } catch (err) {
+      alert('Não foi possível acessar o microfone: ' + err.message);
+    }
+  });
+
+  btnAudioStop?.addEventListener('click', async () => {
+    if (typeof ComexGemini === 'undefined' || !ComexGemini.isRecording()) return;
+
+    try {
+      const audioBlob = await ComexGemini.stopRecording();
+      if (barRecording) barRecording.classList.add('hidden');
+      if (btnAudioRecordText) btnAudioRecordText.textContent = 'Gravar Instruções';
+      if (btnAudioRecord) {
+        btnAudioRecord.classList.remove('bg-rose-600', 'hover:bg-rose-500');
+        btnAudioRecord.classList.add('bg-purple-600', 'hover:bg-purple-500');
+      }
+
+      await handleAudioProcessing(audioBlob);
+    } catch (err) {
+      alert('Erro ao finalizar gravação: ' + err.message);
+    }
+  });
+
+  inputAudioUpload?.addEventListener('change', async (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      await handleAudioProcessing(file);
+      e.target.value = ''; // Reseta input
+    }
+  });
+
+  // ==========================================
   // INICIALIZAÇÃO
   // ==========================================
   bindInputAutoSave();
   populateForm(currentShipment);
   renderDashboardList();
   renderHistoryList();
+  updateGeminiStatusUI();
 });
