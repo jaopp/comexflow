@@ -1217,7 +1217,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     const readyBadge = document.getElementById('badge-gemini-ready');
     if (readyBadge) {
-      readyBadge.textContent = hasKey ? 'Gemini 2.5 Flash Ativo ✅' : 'Aguardando Chave ⚠️';
+      readyBadge.textContent = hasKey ? 'Gemini 3.8 Flash Ativo ✅' : 'Aguardando Chave ⚠️';
       readyBadge.className = hasKey ? 'text-[10px] text-emerald-400 font-semibold' : 'text-[10px] text-amber-400 font-semibold';
     }
   }
