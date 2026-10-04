@@ -40,6 +40,11 @@ O **ComexFlow** é um software desenhado para automatizar todo o fluxo operacion
    - Separação entre embarques **Em Andamento** e **Concluídos/Histórico**.
    - Ferramenta de **Exportar/Importar Backup em JSON** para sincronizar entre máquinas.
 
+7. **Assistente de Voz & Áudio com IA (Google Gemini):**
+   - Grave instruções de voz diretamente pelo microfone do navegador ou anexe áudios encaminhados do WhatsApp (`.ogg`, `.mp3`).
+   - A IA extrai automaticamente reserva de booking, navio, viagem, portos, prazos críticos (convertidos em contagem regressiva), containers, dimensões de chapas e valores.
+   - **Privacidade e Segurança:** Sua Chave de API do Gemini fica gravada exclusivamente no `localStorage` do seu navegador, sem expor credenciais no repositório.
+
 ---
 
 ## 🚀 Como Executar
