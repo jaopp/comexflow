@@ -261,8 +261,8 @@ Retorne ESTRITAMENTE o JSON abaixo com os dados encontrados (deixe strings vazia
             role: 'user',
             parts: [
               {
-                inline_data: {
-                  mime_type: mimeType,
+                inlineData: {
+                  mimeType: mimeType,
                   data: base64Data
                 }
               },
@@ -273,7 +273,7 @@ Retorne ESTRITAMENTE o JSON abaixo com os dados encontrados (deixe strings vazia
           }
         ],
         generationConfig: {
-          response_mime_type: 'application/json',
+          responseMimeType: 'application/json',
           temperature: 0.1
         }
       };
@@ -305,8 +305,9 @@ Retorne ESTRITAMENTE o JSON abaixo com os dados encontrados (deixe strings vazia
           throw new Error('O modelo não retornou conteúdo estruturado.');
         }
 
-        // Faz o parse do JSON limpo retornado
-        const parsed = JSON.parse(textResponse);
+        // Limpa possíveis blocos markdown ```json caso o modelo inclua
+        const cleanJson = textResponse.replace(/^```json\s*/i, '').replace(/\s*```$/, '').trim();
+        const parsed = JSON.parse(cleanJson);
         return parsed;
 
       } catch (err) {
