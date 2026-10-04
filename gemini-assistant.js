@@ -245,13 +245,14 @@ Retorne ESTRITAMENTE o JSON abaixo com os dados encontrados (deixe strings vazia
 }
 `;
 
-    if (onProgress) onProgress('Enviando para o Gemini Flash (escutando e extraindo dados)...');
+    console.log('[ComexGemini] Iniciando processamento com Gemini Flash (v2026.10.03)...');
 
-    // Modelos a testar (gemini-3.8-flash com fallback)
-    const models = ['gemini-3.8-flash', 'gemini-2.5-flash', 'gemini-1.5-flash'];
+    // Modelos oficiais recomendados pela API do Google
+    const models = ['gemini-3.8-flash', 'gemini-2.5-flash'];
     let lastError = null;
 
     for (const model of models) {
+      console.log(`[ComexGemini] Enviando requisição para modelo: ${model}`);
       const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${encodeURIComponent(apiKey)}`;
 
       const payload = {
