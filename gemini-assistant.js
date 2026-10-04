@@ -247,8 +247,8 @@ Retorne ESTRITAMENTE o JSON abaixo com os dados encontrados (deixe strings vazia
 
     if (onProgress) onProgress('Enviando para o Gemini Flash (escutando e extraindo dados)...');
 
-    // Modelos a testar (gemini-2.5-flash com fallback)
-    const models = ['gemini-2.5-flash', 'gemini-1.5-flash', 'gemini-2.0-flash'];
+    // Modelos a testar (gemini-3.8-flash com fallback)
+    const models = ['gemini-3.8-flash', 'gemini-2.5-flash', 'gemini-1.5-flash'];
     let lastError = null;
 
     for (const model of models) {
