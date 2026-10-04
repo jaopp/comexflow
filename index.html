@@ -53,6 +53,12 @@
               <span class="hidden sm:inline">Novo Embarque</span>
             </button>
 
+            <button id="btn-open-gemini-modal" class="px-2.5 py-1.5 text-xs font-semibold bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white rounded-lg transition flex items-center space-x-1.5 shadow-sm" title="Configurar Chave da API do Gemini">
+              <i data-lucide="sparkles" class="w-3.5 h-3.5"></i>
+              <span>IA Gemini</span>
+              <span id="gemini-status-dot" class="w-2 h-2 rounded-full bg-slate-300"></span>
+            </button>
+
             <div class="relative group">
               <button id="btn-backup-menu" class="p-2 text-slate-300 hover:text-white bg-slate-800 hover:bg-slate-700 rounded-lg transition">
                 <i data-lucide="settings" class="w-4 h-4"></i>
@@ -217,6 +223,81 @@
           </div>
         </div>
 
+      </div>
+
+      <!-- Card Assistente de Áudio com IA (Gemini) -->
+      <div class="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 rounded-xl border border-indigo-900/60 p-6 text-white shadow-md relative overflow-hidden">
+        <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+          <div>
+            <div class="flex items-center space-x-2">
+              <span class="px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider bg-purple-500/20 text-purple-300 border border-purple-500/40 rounded-full flex items-center">
+                <i data-lucide="sparkles" class="w-3 h-3 mr-1 text-purple-400"></i> Inteligência Artificial Nativa
+              </span>
+              <span class="text-[10px] text-slate-400">Google Gemini 2.5 Flash</span>
+            </div>
+            <h3 class="text-base font-bold text-white mt-1.5 flex items-center">
+              <i data-lucide="mic" class="w-5 h-5 mr-2 text-purple-400"></i>
+              Preenchimento Inteligente por Áudio / Voz
+            </h3>
+            <p class="text-xs text-slate-300 mt-1 max-w-xl leading-relaxed">
+              Grave instruções de voz ou anexe áudios encaminhados do WhatsApp. A IA extrai navio, booking, prazos, containers e dimensões direto para as tabelas do embarque ativo.
+            </p>
+          </div>
+
+          <div class="flex flex-wrap items-center gap-2">
+            <!-- Botão Gravar Voz -->
+            <button id="btn-audio-record" class="px-4 py-2.5 text-xs font-semibold rounded-lg bg-purple-600 hover:bg-purple-500 text-white transition flex items-center space-x-2 shadow-lg hover:shadow-purple-500/25">
+              <i data-lucide="mic" class="w-4 h-4"></i>
+              <span id="btn-audio-record-text">Gravar Instruções</span>
+            </button>
+
+            <!-- Botão Anexar Áudio -->
+            <label class="px-3.5 py-2.5 text-xs font-semibold rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition flex items-center space-x-2 cursor-pointer">
+              <i data-lucide="upload" class="w-4 h-4 text-purple-400"></i>
+              <span>Anexar Áudio (.ogg / .mp3)</span>
+              <input type="file" id="input-audio-upload" accept="audio/*" class="hidden">
+            </label>
+          </div>
+        </div>
+
+        <!-- Barra de Gravação Ativa -->
+        <div id="audio-recording-bar" class="hidden mt-4 p-3 bg-rose-950/50 border border-rose-500/40 rounded-lg flex items-center justify-between">
+          <div class="flex items-center space-x-3">
+            <span class="w-3 h-3 rounded-full bg-rose-500 animate-ping"></span>
+            <span class="text-xs font-bold text-rose-300">Gravando áudio...</span>
+            <span id="audio-timer-display" class="font-mono text-sm font-black text-white bg-slate-900 px-2 py-0.5 rounded border border-rose-500/30">00:00</span>
+            <span class="text-[11px] text-slate-400 hidden sm:inline">(Fale os dados do booking, containers, prazos e medidas)</span>
+          </div>
+          <button id="btn-audio-stop" class="px-3 py-1.5 text-xs font-bold bg-rose-600 hover:bg-rose-500 text-white rounded transition flex items-center space-x-1">
+            <i data-lucide="square" class="w-3 h-3"></i>
+            <span>Concluir & Processar</span>
+          </button>
+        </div>
+
+        <!-- Barra de Carregamento / Processamento da IA -->
+        <div id="audio-processing-bar" class="hidden mt-4 p-4 bg-purple-950/50 border border-purple-500/40 rounded-lg">
+          <div class="flex items-center space-x-3">
+            <svg class="animate-spin h-5 w-5 text-purple-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+            </svg>
+            <span id="audio-processing-text" class="text-xs font-medium text-purple-200">Enviando áudio para o Gemini...</span>
+          </div>
+        </div>
+
+        <!-- Alerta de Sucesso / Resumo Reconhecido -->
+        <div id="audio-summary-alert" class="hidden mt-4 p-4 bg-emerald-950/50 border border-emerald-500/40 rounded-lg flex items-start justify-between">
+          <div class="flex items-start space-x-3">
+            <i data-lucide="check-circle-2" class="w-5 h-5 text-emerald-400 shrink-0 mt-0.5"></i>
+            <div>
+              <h4 class="text-xs font-bold text-emerald-300">Áudio Processado com Sucesso!</h4>
+              <p id="audio-summary-text" class="text-xs text-slate-300 mt-1"></p>
+            </div>
+          </div>
+          <button id="btn-close-audio-summary" class="text-slate-400 hover:text-white p-1">
+            <i data-lucide="x" class="w-4 h-4"></i>
+          </button>
+        </div>
       </div>
 
       <!-- Embarques Ativos em Andamento -->
@@ -646,6 +727,67 @@
 
   </main>
 
+  <!-- Modal Configuração Gemini API Key -->
+  <div id="modal-gemini-config" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-2xl border border-slate-200 max-w-md w-full overflow-hidden">
+      <div class="p-6 border-b border-slate-100 flex items-center justify-between">
+        <div class="flex items-center space-x-2">
+          <div class="w-8 h-8 rounded-lg bg-purple-100 flex items-center justify-center text-purple-600">
+            <i data-lucide="sparkles" class="w-4 h-4"></i>
+          </div>
+          <div>
+            <h3 class="text-base font-bold text-slate-900">Configuração de IA (Gemini)</h3>
+            <p class="text-xs text-slate-500">Processamento inteligente de áudio e voz</p>
+          </div>
+        </div>
+        <button id="btn-close-gemini-modal" class="text-slate-400 hover:text-slate-600 p-1">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <div class="p-6 space-y-4">
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1">Chave de API do Google Gemini (API Key):</label>
+          <div class="relative">
+            <input type="password" id="inp-gemini-api-key" placeholder="AIzaSy..." class="w-full p-2.5 pr-10 border border-slate-300 rounded-lg text-xs font-mono focus:ring-2 focus:ring-purple-500 focus:outline-none">
+            <button id="btn-toggle-key-visibility" type="button" class="absolute right-2.5 top-2.5 text-slate-400 hover:text-slate-600">
+              <i data-lucide="eye" class="w-4 h-4"></i>
+            </button>
+          </div>
+          <p class="text-[11px] text-slate-500 mt-1.5 leading-relaxed">
+            🔒 <strong>100% Seguro & Privado:</strong> Sua chave é armazenada exclusivamente no seu próprio navegador (<code class="bg-slate-100 px-1 py-0.5 rounded text-[10px]">localStorage</code>). Ela nunca é transmitida para nenhum servidor externo além da API oficial do Google.
+          </p>
+        </div>
+
+        <div class="bg-purple-50 rounded-xl p-3.5 border border-purple-100 text-xs text-purple-900 space-y-1.5">
+          <div class="font-bold flex items-center">
+            <i data-lucide="info" class="w-4 h-4 mr-1 text-purple-600"></i>
+            Como obter sua chave gratuita?
+          </div>
+          <p class="text-[11px] text-purple-800 leading-relaxed">
+            Acesse o <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener noreferrer" class="underline font-bold text-purple-700 hover:text-purple-900">Google AI Studio</a> com sua conta Google e clique em <em>"Create API Key"</em>. A cota gratuita oferece até 1.500 requisições diárias sem custo.
+          </p>
+        </div>
+
+        <div id="gemini-key-alert" class="hidden p-3 rounded-lg text-xs font-medium"></div>
+      </div>
+
+      <div class="p-4 bg-slate-50 border-t border-slate-100 flex items-center justify-between">
+        <button id="btn-remove-gemini-key" class="text-xs text-rose-600 hover:text-rose-800 font-semibold px-2 py-1">
+          Remover Chave
+        </button>
+        <div class="flex items-center space-x-2">
+          <button id="btn-cancel-gemini-modal" class="px-3 py-2 text-xs font-medium text-slate-600 hover:bg-slate-200/60 rounded-lg transition">
+            Cancelar
+          </button>
+          <button id="btn-save-gemini-key" class="px-4 py-2 text-xs font-semibold bg-purple-600 hover:bg-purple-500 text-white rounded-lg transition shadow-sm">
+            Salvar Chave
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- Rodapé -->
   <footer id="footer" class="bg-white border-t border-slate-200 py-4 text-center text-xs text-slate-400 mt-auto">
     <div class="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-2">
@@ -660,6 +802,7 @@
   <script src="xml-parser.js"></script>
   <script src="doc-generators.js"></script>
   <script src="mock-data.js"></script>
+  <script src="gemini-assistant.js"></script>
   <script src="app.js"></script>
 </body>
 </html>
